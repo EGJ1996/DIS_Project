@@ -110,6 +110,7 @@ float migr[2];	                // Migration vector		// Buffer for the receiver n
 int max_sens;
 int braiten;
 int i,j,k;
+double reynold_weights[3];
 void reset(void) {
     wb_robot_init();
     char text[4];
@@ -301,168 +302,6 @@ double fitfunc(double weights[DATASIZE],int its) {
     return fitness;
 }
 
-
-
-float fitfunc1(double weights[DATASIZE1],int its) {
-
-            double left_speed,right_speed; // Wheel speeds
-            double old_left, old_right; // Previous wheel speeds (for recursion)
-            //int left_encoder,right_encoder;
-            double ds_value[NB_SENSOR];
-        
-            // Fitness variables
-            double fit_speed;           // Speed aspect of fitness
-            double fit_diff;            // Speed difference between wheels aspect of fitness
-            double fit_sens;            // Proximity sensing aspect of fitness
-            double fitness;  
-	float avg_loc[2] = {0,0};	// Flock average positions
-	float avg_speed[2] = {0,0};	// Flock average speeds
-	float cohesion[2] = {0,0};
-	float dispersion[2] = {0,0};
-	float consistency[2] = {0,0};
-	fit_speed = 0.0;
-           fit_diff = 0.0;
-           
-           fit_sens = 0.0;
-           old_left = 0.0;
-           old_right = 0.0;
-	
-	for(int it=0;it<its;it++){
-	/* Compute averages over the whole flock */
-              	for(i=0; i<ROB_NB; i++) {
-              		if (i == robot_id) 
-              		{	
-              			// don't consider yourself for the average 
-              			continue;
-              		}
-                        	for (j=0;j<2;j++) 
-              		{
-              			avg_speed[j] += speed[i][j];
-              			avg_loc[j] += loc[i][j];
-              		}
-              	}
-              	
-                      for (j=0;j<2;j++) 
-              	{
-                        	
-                        	avg_speed[j] /= ROB_NB - 1;
-                        	avg_loc[j] /= ROB_NB-1;
-              
-                        	
-                      }
-              	
-              	/* Reynold's rules */
-              	
-              	/* Rule 1 - Aggregation/Cohesion: move towards the center of mass */
-              	for (j=0;j<2;j++) {
-              		// If center of mass is too far
-              		if (sqrt(pow(loc[robot_id][0]-avg_loc[0],2)+pow(loc[robot_id][1]-avg_loc[1],2)) > RULE1_THRESHOLD) 
-              		{
-                       		cohesion[j] = avg_loc[j] - loc[robot_id][j];   // Relative distance to the center of the swarm
-              		}
-              	}
-              	
-                
-                
-              	/* Rule 2 - Dispersion/Separation: keep far enough from flockmates */
-              	for (k=0;k<ROB_NB;k++) {
-              		if (k != robot_id) {        // Loop on flockmates only
-              			// If neighbor k is too close (Euclidean distance)
-              			if (pow(loc[robot_id][0]-loc[k][0],2)+pow(loc[robot_id][1]-loc[k][1],2) < RULE2_THRESHOLD) 
-              			{
-              				for (j=0;j<2;j++) 
-              				{
-              					dispersion[j] += 1/(loc[robot_id][j] -loc[k][j]);	// Relative distance to k
-              				}
-              			}
-              		}
-              	}
-                
-              	/* Rule 3 - Consistency/Alignment: match the speeds of flockmates */
-                      consistency[0] = 0;
-                      consistency[1] = 0;
-                      /* add code for consistency[j]*/
-                      for (j=0;j<2;j++) 
-                      {
-                          consistency[j] = avg_speed[j] - speed[robot_id][j];
-                      }
-                
-                      // aggregation of all behaviors with relative influence determined by weights
-              //        printf("id = %d, cx = %f, cy = %f\n", robot_id, cohesion[0], cohesion[1]);
-                      // if(robot_id == 0)
-                      // printf("id = %d, %f %f, %f %f, %f %f\n", robot_id, cohesion[0], -cohesion[1], dispersion[0], -dispersion[1], consistency[0], -consistency[1]);
-                      
-                      for (j=0;j<2;j++) 
-              	{
-                               speed[robot_id][j] = cohesion[j] * RULE1_WEIGHT*weights[0];
-                               speed[robot_id][j] +=  dispersion[j] * RULE2_WEIGHT*weights[1];
-                               speed[robot_id][j] +=  consistency[j] * RULE3_WEIGHT*weights[2]   ;
-                       }
-                      speed[robot_id][1] *= -1; //y axis of webots is inverted
-                      
-                      left_speed = speed[robot_id][0];
-                      right_speed = speed[robot_id][1];
-                      
-                      left_speed += weights[REYNOLD_PARAMS+1]*(old_left+MAX_SPEED)/(2*MAX_SPEED);
-                      left_speed += weights[REYNOLD_PARAMS+2]*(old_right+MAX_SPEED)/(2*MAX_SPEED);
-                      right_speed += weights[REYNOLD_PARAMS+1]*(old_left+MAX_SPEED)/(2*MAX_SPEED);
-                      right_speed += weights[REYNOLD_PARAMS+2]*(old_right+MAX_SPEED)/(2*MAX_SPEED);
-                      
-                      left_speed += weights[REYNOLD_PARAMS];
-                      right_speed += weights[2*REYNOLD_PARAMS];
-                      // Apply neuron transform 
-                      left_speed = MAX_SPEED*(2.0*s(left_speed)-1.0);
-                      right_speed = MAX_SPEED*(2.0*s(right_speed)-1.0);
-              
-                      // Make sure we don't accelerate too fast
-                      if (left_speed - old_left > MAX_ACC) left_speed = old_left+MAX_ACC;
-                      if (left_speed - old_left < -MAX_ACC) left_speed = old_left-MAX_ACC;
-                      if (right_speed - old_right > MAX_ACC) left_speed = old_right+MAX_ACC;
-                      if (right_speed - old_right < -MAX_ACC) left_speed = old_right-MAX_ACC;
-                      
-                      // Make sure speeds are within bounds
-                      if (left_speed > MAX_SPEED) left_speed = MAX_SPEED;
-                      if (left_speed < -1.0*MAX_SPEED) left_speed = -1.0*MAX_SPEED;
-                      if (right_speed > MAX_SPEED) right_speed = MAX_SPEED;
-                      if (right_speed < -1.0*MAX_SPEED) right_speed = -1.0*MAX_SPEED;
-              
-                      // Set new old speeds
-                      old_left = left_speed;
-                      old_right = right_speed;
-                      
-                      left_speed += weights[2*NB_SENSOR+2]*(old_left+MAX_SPEED)/(2*MAX_SPEED);
-                      left_speed += weights[2*NB_SENSOR+3]*(old_right+MAX_SPEED)/(2*MAX_SPEED);
-                      right_speed += weights[2*NB_SENSOR+4]*(old_left+MAX_SPEED)/(2*MAX_SPEED);
-                      right_speed += weights[2*NB_SENSOR+5]*(old_right+MAX_SPEED)/(2*MAX_SPEED);
-                      float msl_w = left_speed*MAX_SPEED_WEB/1000;
-                      float msr_w = right_speed*MAX_SPEED_WEB/1000; 
-                      wb_motor_set_velocity(left_motor, (int)msl_w);
-                      wb_motor_set_velocity(right_motor, (int)msr_w);
-                      wb_robot_step(128); // run one step
-              
-                      // Get current fitness value
-              
-                      // Average speed
-                      fit_speed += (fabs(left_speed) + fabs(right_speed))/(2.0*MAX_SPEED);
-                      // Difference in speed
-                      fit_diff += fabs(left_speed - right_speed)/MAX_DIFF;
-        }
-         // Average values over all steps
-    fit_speed /= its;
-    fit_diff /= its;
-
-    /*Motivation for the fitness function
-    1 - sqrt(fit_diff) encourages the robots to go straight, i.e,no turning
-    fit_speed encourages the robots to approach the target with max speed
-    */
-    fitness = fit_speed*(1.0 - sqrt(fit_diff));
-
-    return fitness;
-     
-        
-        
-}
-
 void compute_wheel_speeds(int *msl, int *msr) 
 {
 	// Compute wanted position from Reynold's speed and current location
@@ -589,9 +428,12 @@ void reynolds_rules() {
         
         for (j=0;j<2;j++) 
 	{
-                 speed[robot_id][j] = cohesion[j] * RULE1_WEIGHT;
-                 speed[robot_id][j] +=  dispersion[j] * RULE2_WEIGHT;
-                 speed[robot_id][j] +=  consistency[j] * RULE3_WEIGHT;
+                 // speed[robot_id][j] = cohesion[j] * RULE1_WEIGHT;
+                 // speed[robot_id][j] +=  dispersion[j] * RULE2_WEIGHT;
+                 // speed[robot_id][j] +=  consistency[j] * RULE3_WEIGHT;
+                 speed[robot_id][j] = cohesion[j] * reynold_weights[0];
+                 speed[robot_id][j] += dispersion[j] * reynold_weights[1];
+                 speed[robot_id][j] += consistency[j] * reynold_weights[2];
          }
         speed[robot_id][1] *= -1; //y axis of webots is inverted
         
@@ -739,26 +581,30 @@ void pso_braiten(enum States state){
         // }   
         if(state == PSO_BRAITEN){
           fit = fitfunc(rbuffer,rbuffer[DATASIZE]);
-          }
+          for(int k=0;k<22;k++){
+           good_w[k] = rbuffer[k];
+         }
+         buffer[0] = fit;
+         printf("Fit = %lf\n",fit);
+         wb_emitter_send(emitter,(void *)buffer,sizeof(double));
+        }
         
         else if(state == PSO_REYNOLDS){
-          fit = fitfunc1(rbuffer,rbuffer[DATASIZE1]);
+          printf("rbuffer when computing the fitfunc in the children: \n");
+          for(int k=0;k<=DATASIZE1;k++){
+            printf("rbuffer[%d] = %f \n",k,rbuffer[k]);
+          }
+          reynold_weights[0] = rbuffer[0];
+          reynold_weights[1] = rbuffer[1];
+          reynold_weights[2] = rbuffer[2];
         }
-        for(int k=0;k<22;k++){
-          good_w[k] = rbuffer[k];
-         }
+        
         
         // for(int k=0;k<DATASIZE;k++){
         // printf("rbuffer[%d] = %lf\n",k,rbuffer[k]);
         // }
-        buffer[0] = fit;
-        printf("Fit = %lf\n",fit);
-        wb_emitter_send(emitter,(void *)buffer,sizeof(double));
         }  
 }
-
-
-
  
 int main() {
     
@@ -780,13 +626,20 @@ int main() {
         rbuffer = (double *)wb_receiver_get_data(rec);
         printf("Received data from supervisor\n");
         
+        // double buffsize = (double)sizeof(rbuffer)/sizeof(double);
+        // printf("size of buffer received from supervisor is %d \n",buffsize);
         int main_state = (int)rbuffer[0];
-        printf("main_state = %d\n",main_state);
+        
+        printf("main_state received from pso_reynolds = %d\n",main_state);
         
         if(main_state == 0){
           pso_braiten(0);
         }
         else if(main_state == -1 || main_state == 1){
+          // braiten_reynolds();
+          pso_braiten(1);
+        }
+        else if(main_state == -2 || main_state ==2){
           braiten_reynolds();
         }
         
@@ -797,4 +650,3 @@ int main() {
     printf("Exiting main function\n");
     return 0;
 }
-
