@@ -7,7 +7,7 @@
 
 
 // Main program
-void braitenberg() {
+void braitenberg(void) {
 
 	int weightleft[8] = {-5, -5, -5, 0, 0, 5, 5, 5};
 	int weightright[8] = {5, 5, 5, 0, 0, -5, -5, -5};

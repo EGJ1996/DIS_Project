@@ -1,1 +1,1 @@
-void braitenberg();
+void braitenberg(void);
