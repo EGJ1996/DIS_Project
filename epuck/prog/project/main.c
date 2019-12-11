@@ -40,6 +40,18 @@ float sensorDir[NB_IR_SENSORS] = {0.2967, 0.8727, 1.5708, 2.6180, 3.6652, 4.7124
 int ownGroup = 0;
 int ownNumber = 0;
 
+double wheelDia = 41;
+int stepPerRev = 1000;
+double mmPerSteps = 2*M_PI/stepPerRev*wheelDia/2;
+double stepsPerMm = 1/mmPerSteps;
+
+int steps2DoRight = 0;
+int steps2DoLeft = 0;
+
+double posX = 0;
+double posY = 0;
+double theta = 0;
+
 int getselector()
 {
     return SELECTOR0 + 2*SELECTOR1 + 4*SELECTOR2 + 8*SELECTOR3;
@@ -108,12 +120,12 @@ int main()
 		    
 			/* Send Value*/		
 			char tmp[128];
-			sprintf(tmp, "Receive successful : %d  - distance=%f \t direction=%f \n", val, (double)imsg.distance, (double)imsg.direction);
+			sprintf(tmp, "Receive successful : %d  - distance=%f \t direction=%f \n\r", val, (double)imsg.distance, (double)imsg.direction);
 			btcomSendString(tmp);
 		    }
 		    else if (imsg.error > 0)
 		    {
-			btcomSendString("Receive failed \n");		
+			//btcomSendString("Receive failed \n\r");		
 		    }
 		    // else imsg.error == -1 -> no message available in the queue
 
@@ -124,7 +136,8 @@ int main()
     	ownGroup = 1;
     	ownNumber = 3;
 		sendRobotInfosBT(ownGroup,ownNumber);
-		while(1);
+		goForward(40);
+		doSlaveStuffLoop();
     }
     // Group 2
     else if (selector == 4){
@@ -242,7 +255,7 @@ void obstacleAvoidance()
 // the leader will send group*10 
 // and the slave group*10+slavenumber
 void leaderPingSlave(int group){
-	ircomSend(group*10);	
+	ircomSend(group*10+1);	
 	while (ircomSendDone() == 0); 
 }
 
@@ -260,14 +273,26 @@ void doLeaderStuffLoop(void){
 	bool execute = true;
 	while (execute == true){
 		leaderPingSlave(ownGroup);
+		int j;
+		for(j = 0; j < 200000; j++)
+			asm("nop");
 	}
 
 }
 
 void doSlaveStuffLoop(void){
 	bool execute = true;
+	int i = 0;
 	while (execute == true) {
-
+		updateMotorSpeed();
+		updatePosition();
+		if(i>4000){
+			char tmp[128];
+			sprintf(tmp, "===================== Position ==================\n\r Position X: %d\n\r Position Y: %d\n\r", posX, posY);
+			btcomSendString(tmp);
+			i = 0;
+		}
+		i++;
 	}
 }
 
@@ -281,5 +306,40 @@ void sendRobotInfosBT(int group, int number){
 		char tmp[128];
 		sprintf(tmp, "===================== FOLLOWER ==================\n\r Group number: %d\n\r Robot number: %d\n\r", group, number);
 		btcomSendString(tmp);
+	}
+}
+
+void updatePosition(){
+	int stepsLeft = e_get_steps_left();
+	int stepsRight = e_get_steps_right();
+
+	posX += cos(theta)*stepsRight*mmPerSteps;
+	posY += sin(theta)*stepsLeft*mmPerSteps;
+}
+
+void goForward(int distance_mm){
+	int steps = (int)stepsPerMm*distance_mm;
+	steps2DoLeft = steps;
+	steps2DoRight = steps;
+}
+
+void updateMotorSpeed(){
+	if(steps2DoRight-e_get_steps_right>0){
+		e_set_speed_right(500);
+	}
+	else if ( steps2DoRight-e_get_steps_right < 0){
+		e_set_speed_right(-500);
+	}
+	else{
+		e_set_speed_right(0);
+	}
+	if(steps2DoLeft-e_get_steps_left>0){
+		e_set_speed_left(500);
+	}
+	else if ( steps2DoLeft-e_get_steps_left < 0){
+		e_set_speed_left(-500);
+	}
+	else{
+		e_set_speed_left(0);
 	}
 }
