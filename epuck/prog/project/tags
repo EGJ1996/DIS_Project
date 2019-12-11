@@ -4,9 +4,26 @@
 !_TAG_PROGRAM_NAME	Exuberant Ctags	//
 !_TAG_PROGRAM_URL	http://ctags.sourceforge.net	/official site/
 !_TAG_PROGRAM_VERSION	5.9~svn20110310	//
+_METRICS	metrics.h	2;"	d
+bool	main.c	/^typedef enum { false, true } bool;$/;"	t	typeref:enum:__anon1	file:
+cohesion	metrics.c	/^double cohesion(int nbRobots, double** positionRobots){$/;"	f
+doLeaderStuffLoop	main.c	/^void doLeaderStuffLoop(void){$/;"	f
+doSlaveStuffLoop	main.c	/^void doSlaveStuffLoop(void){$/;"	f
+false	main.c	/^typedef enum { false, true } bool;$/;"	e	enum:__anon1	file:
 getselector	main.c	/^int getselector()$/;"	f
+isPartOfGroup	main.c	/^bool isPartOfGroup(int message){$/;"	f
+leaderPingSlave	main.c	/^void leaderPingSlave(int group){$/;"	f
 main	main.c	/^int main()$/;"	f
 obstacleAvoidance	main.c	/^void obstacleAvoidance()$/;"	f
 obstacleAvoidanceSpeed	main.c	/^int obstacleAvoidanceSpeed = 500.0;$/;"	v
 obstacleAvoidanceThreshold	main.c	/^int obstacleAvoidanceThreshold = 30.0;$/;"	v
+orientation	metrics.c	/^double orientation(int nbRobots, double* headingRobots){$/;"	f
+ownGroup	main.c	/^int ownGroup = 0;$/;"	v
+ownNumber	main.c	/^int ownNumber = 0;$/;"	v
+performanceGlobal	metrics.c	/^double performanceGlobal(void){$/;"	f
+performanceInstant	metrics.c	/^double performanceInstant(void){$/;"	f
+sendRobotInfosBT	main.c	/^void sendRobotInfosBT(int group, int number){$/;"	f
 sensorDir	main.c	/^float sensorDir[NB_IR_SENSORS] = {0.2967, 0.8727, 1.5708, 2.6180, 3.6652, 4.7124, 5.4105, 5.9865};$/;"	v
+slaveRespondsLeader	main.c	/^void slaveRespondsLeader(int group, int slave){$/;"	f
+true	main.c	/^typedef enum { false, true } bool;$/;"	e	enum:__anon1	file:
+velocities	metrics.c	/^double velocities(int nbRobots, double* centerOfMass){$/;"	f

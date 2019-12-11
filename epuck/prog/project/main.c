@@ -33,8 +33,12 @@
 #include <ircom/ircom.h>
 #include <btcom/btcom.h>
 #include <math.h>
+typedef enum { false, true } bool;
 
 float sensorDir[NB_IR_SENSORS] = {0.2967, 0.8727, 1.5708, 2.6180, 3.6652, 4.7124, 5.4105, 5.9865};
+// group number of the robot.
+int ownGroup = 0;
+int ownNumber = 0;
 
 int getselector()
 {
@@ -67,98 +71,100 @@ int main()
     // rely on selector to define the role
     int selector = getselector();
 
-    // show selector choosen
-    int i;
-    long int j;
-    for (i = 0; i < selector; i++)
-    {
-	e_led_clear();
-	
-	for(j = 0; j < 200000; j++)
-	    asm("nop");
-	
-	e_set_led(i%8, 1);
-	
-	for(j = 0; j < 300000; j++)
-	    asm("nop");
-
-	e_led_clear();
-
-	for(j = 0; j < 300000; j++)
-	    asm("nop");
-    }
-
     // activate obstacle avoidance
-    e_activate_agenda(obstacleAvoidance, 10000);
+    //e_activate_agenda(obstacleAvoidance, 5000); //every 500ms we do obstacle sensing/avoidance
+    //e_activate_agenda(flocking, 5000);
 
     // acting as sender
     if (selector == 1)
     {    	
-	btcomSendString("==== EMITTER ====\n\n");
+    	ownGroup = 1;
+    	ownNumber = 1; // leader
 
-	int i;
-	for (i = 0; i < 10000; i++)
-	{
-	    // takes ~15knops for a 32window, avoid putting messages too close...
-	    for(j = 0; j < 100000; j++)	asm("nop");
+		sendRobotInfosBT(ownGroup,ownNumber);
 
-	    ircomSend(i % 256);	    
-	    while (ircomSendDone() == 0);
-
+	    leaderPingSlave(ownGroup);
+	    doLeaderStuffLoop();
 	    btcomSendString(".");
-	}
     }
     
     // acting as receiver
     else if (selector == 2)
     {
-	btcomSendString("==== RECEIVER ====\n\n");
+    	ownGroup = 1;
+    	ownNumber = 2;
+		sendRobotInfosBT(ownGroup,ownNumber);
 
-	int i = 0;
-	while (i < 200)
-	{
-	    // ircomListen();
-	    IrcomMessage imsg;
-	    ircomPopMessage(&imsg);
-	    if (imsg.error == 0)
-	    {
-			e_set_led(1, 2);
-		int val = (int) imsg.value;
-	    
-		/* Send Value*/		
-		char tmp[128];
-		sprintf(tmp, "Receive successful : %d  - distance=%f \t direction=%f \n", val, (double)imsg.distance, (double)imsg.direction);
-		btcomSendString(tmp);
-	    }
-	    else if (imsg.error > 0)
-	    {
-		btcomSendString("Receive failed \n");		
-	    }
-	    // else imsg.error == -1 -> no message available in the queue
+		int i = 0;
+		while (i < 200) //for loop better
+		{
+		    // ircomListen();
+		    IrcomMessage imsg;
+		    ircomPopMessage(&imsg);
+		    if (imsg.error == 0)
+		    {
+				e_set_led(1, 2);
+			int val = (int) imsg.value;
+		    
+			/* Send Value*/		
+			char tmp[128];
+			sprintf(tmp, "Receive successful : %d  - distance=%f \t direction=%f \n", val, (double)imsg.distance, (double)imsg.direction);
+			btcomSendString(tmp);
+		    }
+		    else if (imsg.error > 0)
+		    {
+			btcomSendString("Receive failed \n");		
+		    }
+		    // else imsg.error == -1 -> no message available in the queue
 
-	    if (imsg.error != -1) i++;
-	}
+		    if (imsg.error != -1) i++;
+		}
     }
-    // no proper role defined...
+    else if (selector == 3){
+    	ownGroup = 1;
+    	ownNumber = 3;
+		sendRobotInfosBT(ownGroup,ownNumber);
+		while(1);
+    }
+    // Group 2
+    else if (selector == 4){
+    	ownGroup = 2;
+    	ownNumber = 1;
+		sendRobotInfosBT(ownGroup,ownNumber);
+		while(1);
+    }
+    else if (selector == 5){
+    	ownGroup = 2;
+    	ownNumber = 2;
+		sendRobotInfosBT(ownGroup,ownNumber);
+		while(1);
+    }
+    else if (selector == 6){
+    	ownGroup = 2;
+    	ownNumber = 3;
+		sendRobotInfosBT(ownGroup,ownNumber);
+		while(1);
+    }
+    // no proper role defined blink the body leds
     else 
     {
-	int i = 0;
-	long int j;
-	while(1)
-	{
-	    e_led_clear();
-	    
-	    for(j = 0; j < 200000; j++)
-		asm("nop");
-	    
-	    e_set_led(i, 1);
-	    
-	    for(j = 0; j < 300000; j++)
-		asm("nop");
-	    
-	    i++;
-	    i = i%8;
-	}	
+		int i = 0;
+		long int j;
+		while(1)
+		{
+		    e_set_body_led(0);
+		    
+		    for(j = 0; j < 200000; j++)
+			asm("nop");
+		    
+		    e_set_body_led(1);
+		    
+		    for(j = 0; j < 300000; j++)
+			asm("nop");
+		    
+		    i++;
+		    i = i%8;
+		}	
     }    
     
     ircomStop();
@@ -167,6 +173,7 @@ int main()
 
 int obstacleAvoidanceThreshold = 30.0;
 int obstacleAvoidanceSpeed = 500.0;
+
 void obstacleAvoidance()
 {    
     // check if an obstacle is perceived 
@@ -228,4 +235,51 @@ void obstacleAvoidance()
     
     // advertise obstacle avoidance in progress
     // return 1;
+}
+
+
+// group is 1 or 2
+// the leader will send group*10 
+// and the slave group*10+slavenumber
+void leaderPingSlave(int group){
+	ircomSend(group*10);	
+	while (ircomSendDone() == 0); 
+}
+
+void slaveRespondsLeader(int group, int slave){
+	ircomSend(group*10+slave);
+	while (ircomSendDone() == 0); 
+}
+
+bool isPartOfGroup(int message){
+	int receivedGroup = (int) message/10;
+	return ownGroup == receivedGroup;
+}
+
+void doLeaderStuffLoop(void){
+	bool execute = true;
+	while (execute == true){
+		leaderPingSlave(ownGroup);
+	}
+
+}
+
+void doSlaveStuffLoop(void){
+	bool execute = true;
+	while (execute == true) {
+
+	}
+}
+
+void sendRobotInfosBT(int group, int number){
+	if (number == 1){
+		char tmp[128];
+		sprintf(tmp, "===================== LEADER ==================\n\r Group number: %d\n\r Robot number: %d\n\r", group, number);
+		btcomSendString(tmp);
+	}
+	else{
+		char tmp[128];
+		sprintf(tmp, "===================== FOLLOWER ==================\n\r Group number: %d\n\r Robot number: %d\n\r", group, number);
+		btcomSendString(tmp);
+	}
 }

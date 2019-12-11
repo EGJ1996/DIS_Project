@@ -504,7 +504,7 @@ void braiten_reynolds(){
 		else {
 		
 		// Get position update
-//		printf("\n got update robot[%d] = (%f,%f) \n",rob_nb,loc[rob_nb][0],loc[rob_nb][1]);
+        //printf("\n got update robot[%d] = (%f,%f) \n",rob_nb,loc[rob_nb][0],loc[rob_nb][1]);
 		prev_loc[rob_nb][0] = loc[rob_nb][0];
 		prev_loc[rob_nb][1] = loc[rob_nb][1];
 		loc[rob_nb][0] = rob_x; //x-position
