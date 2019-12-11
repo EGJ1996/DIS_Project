@@ -52,6 +52,7 @@ int main()
     e_led_clear();	
     e_init_motors();
     e_start_agendas_processing();
+    e_init_prox();
 
     // wait for s to start
     //btcomWaitForCommand('s');
