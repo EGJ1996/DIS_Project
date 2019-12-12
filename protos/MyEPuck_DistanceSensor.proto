@@ -1,0 +1,55 @@
+PROTO MyEPuck_DistanceSensor [
+  field SFVec3f translation 0 0 0
+  field SFRotation rotation  0 1 0 0
+  field SFString name "ds"
+]
+{
+  DistanceSensor {
+    translation IS translation
+    rotation IS rotation
+    name IS name
+    children [
+      Shape { # sensor
+        appearance Appearance {
+          material Material {
+            diffuseColor 0 0 0
+            specularColor 0.301961 0.301961 0.301961
+          }
+        }
+        geometry Box {
+          size 0.002 0.004 0.007
+        }
+      }
+      Shape { # pins
+        appearance Appearance {
+          material Material {
+            diffuseColor 1 1 1
+            shininess 0.5
+            specularColor 0.898039 0.898039 0.898039
+          }
+        }
+        geometry IndexedLineSet {
+          coord Coordinate {
+            point [
+              0 0 -0.003
+              0 0.004 -0.003
+              0 0 -0.001
+              0 0.004 -0.001
+              0 0 0.001
+              0 0.004 0.001
+              0 0 0.003
+              0 0.004 0.003
+            ]
+          }
+          coordIndex [
+            0, 1, -1, 2, 3, -1, 4, 5, -1, 6, 7
+          ]
+        }
+      }
+    ]
+    lookupTable [
+      0 4095 0.005
+      0.3 34 0.704
+    ]
+  }
+}

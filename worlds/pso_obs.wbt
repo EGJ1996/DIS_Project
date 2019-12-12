@@ -1,0 +1,300 @@
+#VRML_SIM R2019b utf8
+WorldInfo {
+  info [
+    "Description"
+    "Author: first name last name <e-mail>"
+    "Date: DD MMM YYYY"
+  ]
+  contactProperties [
+    ContactProperties {
+      coulombFriction [
+        0.1
+      ]
+    }
+  ]
+}
+Viewpoint {
+  orientation 0.528246631494369 0.6588534177844027 0.5356002895711165 4.306857276675586
+  position -0.6225491598317111 2.777058510055988 -0.012418071294752787
+}
+TexturedBackground {
+}
+TexturedBackgroundLight {
+}
+RectangleArena {
+  floorSize 2 2
+}
+DEF rob0 E-puck {
+  translation 0.618454 0 -0.617256
+  rotation 0 1 0 1.57
+  name "e-puck_0"
+  controller "obs_con"
+  receiver_channel 0
+  turretSlot [
+    Receiver {
+      name "receiver_epuck"
+    }
+    Emitter {
+      name "emitter_epuck"
+      channel 1
+    }
+  ]
+  kinematic TRUE
+}
+DEF rob1 E-puck {
+  translation 0.7184539999999999 0 -0.517256
+  rotation 0 1 0 1.57
+  name "e-puck_1"
+  controller "obs_con"
+  emitter_channel 3
+  receiver_channel 2
+  turretSlot [
+    Receiver {
+      name "receiver_epuck"
+      channel 2
+    }
+    Emitter {
+      name "emitter_epuck"
+      channel 3
+    }
+  ]
+  kinematic TRUE
+}
+DEF rob2 E-puck {
+  translation 0.534167 0 -0.0482377
+  rotation 0 1 0 1.57
+  name "e-puck_2"
+  controller "obs_con"
+  emitter_channel 5
+  receiver_channel 4
+  turretSlot [
+    Receiver {
+      name "receiver_epuck"
+      channel 4
+    }
+    Emitter {
+      name "emitter_epuck"
+      channel 5
+    }
+  ]
+  kinematic TRUE
+}
+DEF rob3 E-puck {
+  translation -0.567095 0 -0.426532
+  rotation 0 1 0 1.57
+  name "e-puck_3"
+  controller "obs_con"
+  emitter_channel 7
+  receiver_channel 6
+  turretSlot [
+    Receiver {
+      name "receiver_epuck"
+      channel 6
+    }
+    Emitter {
+      name "emitter_epuck"
+      channel 7
+    }
+  ]
+  kinematic TRUE
+}
+DEF rob4 E-puck {
+  translation 0.14464 0 0.157937
+  rotation 0 1 0 1.57
+  name "e-puck_4"
+  controller "obs_con"
+  emitter_channel 9
+  receiver_channel 8
+  turretSlot [
+    Receiver {
+      name "receiver_epuck"
+      channel 8
+    }
+    Emitter {
+      name "emitter_epuck"
+      channel 9
+    }
+  ]
+  kinematic TRUE
+}
+DEF rob5 E-puck {
+  translation 0.470748 0 0.756664
+  rotation 0 1 0 1.57
+  name "e-puck_5"
+  controller "obs_con"
+  emitter_channel 11
+  receiver_channel 10
+  turretSlot [
+    Receiver {
+      name "receiver_epuck"
+      channel 10
+    }
+    Emitter {
+      name "emitter_epuck"
+      channel 11
+    }
+  ]
+  kinematic TRUE
+}
+DEF rob6 E-puck {
+  translation -0.682996 0 0.262911
+  rotation 0 1 0 1.57
+  name "e-puck_6"
+  controller "obs_con"
+  emitter_channel 13
+  receiver_channel 12
+  turretSlot [
+    Receiver {
+      name "receiver_epuck"
+      channel 12
+    }
+    Emitter {
+      name "emitter_epuck"
+      channel 13
+    }
+  ]
+  kinematic TRUE
+}
+DEF rob7 E-puck {
+  translation -0.131814 0 0.553387
+  rotation 0 1 0 1.57
+  name "e-puck_7"
+  controller "obs_con"
+  emitter_channel 15
+  receiver_channel 14
+  turretSlot [
+    Receiver {
+      name "receiver_epuck"
+      channel 14
+    }
+    Emitter {
+      name "emitter_epuck"
+      channel 15
+    }
+  ]
+  kinematic TRUE
+}
+DEF rob8 E-puck {
+  translation -0.130055 0 -0.460571
+  rotation 0 1 0 1.57
+  name "e-puck_8"
+  controller "obs_con"
+  emitter_channel 17
+  receiver_channel 16
+  turretSlot [
+    Receiver {
+      name "receiver_epuck"
+      channel 16
+    }
+    Emitter {
+      name "emitter_epuck"
+      channel 17
+    }
+  ]
+  kinematic TRUE
+}
+DEF rob9 E-puck {
+  translation -0.339735 0 0.188164
+  rotation 0 1 0 1.57
+  name "e-puck_9"
+  controller "obs_con"
+  emitter_channel 19
+  receiver_channel 18
+  turretSlot [
+    Receiver {
+      name "receiver_epuck"
+      channel 18
+    }
+    Emitter {
+      name "emitter_epuck"
+      channel 19
+    }
+  ]
+  kinematic TRUE
+}
+DEF supervisor Robot {
+  children [
+    DEF emitter0 Emitter {
+      name "emitter0"
+    }
+    DEF emitter1 Emitter {
+      name "emitter1"
+      channel 2
+    }
+    DEF emitter2 Emitter {
+      name "emitter2"
+      channel 4
+    }
+    DEF emitter3 Emitter {
+      name "emitter3"
+      channel 6
+    }
+    DEF emitter4 Emitter {
+      name "emitter4"
+      channel 8
+    }
+    DEF emitter5 Emitter {
+      name "emitter5"
+      channel 10
+    }
+    DEF emitter6 Emitter {
+      name "emitter6"
+      channel 12
+    }
+    DEF emitter7 Emitter {
+      name "emitter7"
+      channel 14
+    }
+    DEF emitter8 Emitter {
+      name "emitter8"
+      channel 16
+    }
+    DEF emitter9 Emitter {
+      name "emitter9"
+      channel 18
+    }
+    DEF receiver0 Receiver {
+      name "receiver0"
+      channel 1
+    }
+    DEF receiver1 Receiver {
+      name "receiver1"
+      channel 3
+    }
+    DEF receiver2 Receiver {
+      name "receiver2"
+      channel 5
+    }
+    DEF receiver3 Receiver {
+      name "receiver3"
+      channel 7
+    }
+    DEF receiver4 Receiver {
+      name "receiver4"
+      channel 9
+    }
+    DEF receiver5 Receiver {
+      name "receiver5"
+      channel 11
+    }
+    DEF receiver6 Receiver {
+      name "receiver6"
+      channel 13
+    }
+    DEF receiver7 Receiver {
+      name "receiver7"
+      channel 15
+    }
+    DEF receiver8 Receiver {
+      name "receiver8"
+      channel 17
+    }
+    DEF receiver9 Receiver {
+      name "receiver9"
+      channel 19
+    }
+  ]
+  name "supervisor"
+  controller "pso_obs_sup"
+  supervisor TRUE
+}
