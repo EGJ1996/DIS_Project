@@ -115,29 +115,7 @@ int main()
 		sendRobotInfosBT(ownGroup,ownNumber);
 
 		int i = 0;
-		while (i < 200) //for loop better
-		{
-		    // ircomListen();
-		    IrcomMessage imsg;
-		    ircomPopMessage(&imsg);
-		    if (imsg.error == 0)
-		    {
-				e_set_led(1, 2);
-			int val = (int) imsg.value;
-		    
-			/* Send Value*/		
-			char tmp[128];
-			sprintf(tmp, "Receive successful : %d  - distance=%f \t direction=%f \n\r", val, (double)imsg.distance, (double)imsg.direction);
-			btcomSendString(tmp);
-		    }
-		    else if (imsg.error > 0)
-		    {
-			//btcomSendString("Receive failed \n\r");		
-		    }
-		    // else imsg.error == -1 -> no message available in the queue
-
-		    if (imsg.error != -1) i++;
-		}
+		treatIncommingMessages();
     }
     else if (selector == 3){
     	ownGroup = 1;
@@ -313,10 +291,37 @@ void sendRobotInfosBT(int group, int number){
 	}
 }
 
+void treatIncommingMessages(){
+	////while (i < 200) //for loop better
+	//	{
+		    // ircomListen();
+		    IrcomMessage imsg;
+		    ircomPopMessage(&imsg);
+		    if (imsg.error == 0)
+		    {
+				e_set_led(1, 2);
+			int val = (int) imsg.value;
+		    
+			/* Send Value*/		
+			/*char tmp[128];
+			sprintf(tmp, "Receive successful : %d  - distance=%f \t direction=%f \n\r", val, (double)imsg.distance, (double)imsg.direction);
+			btcomSendString(tmp);*/
+			updateRobotsPosition(val, (double)imsg.distance, (double)imsg.direction);
+		    }
+		    else if (imsg.error > 0)
+		    {
+			//btcomSendString("Receive failed \n\r");		
+		    }
+		    // else imsg.error == -1 -> no message available in the queue
+
+		    if (imsg.error != -1) i++;
+		//}
+}
+
 void updateRobotsPosition(int val, double distance, double heading){
 	int robotNumber = (int)val - (int)val/10;
 
 	// the angle is rotated 90°
-	posX[robotNumber] = cos(heading-M_PI/2.0)*distance;
-	posY[robotNumber] = sin(heading-M_PI/2.0)*distance;
+	posX[robotNumber-1] = cos(heading-M_PI/2.0)*distance;
+	posY[robotNumber-1] = sin(heading-M_PI/2.0)*distance;
 }
