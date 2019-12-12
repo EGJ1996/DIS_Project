@@ -36,6 +36,8 @@
 
 #include "main.h"
 
+#define M_PI 3.141569
+
 typedef enum { false, true } bool;
 
 float sensorDir[NB_IR_SENSORS] = {0.2967, 0.8727, 1.5708, 2.6180, 3.6652, 4.7124, 5.4105, 5.9865};
@@ -43,19 +45,19 @@ float sensorDir[NB_IR_SENSORS] = {0.2967, 0.8727, 1.5708, 2.6180, 3.6652, 4.7124
 int ownGroup = 0;
 int ownNumber = 0;
 
-double wheelDia = 41;
-int stepPerRev = 1000;
-double mmPerSteps = 2*M_PI/stepPerRev*wheelDia/2;
-double stepsPerMm = 1/mmPerSteps;
+#define wheelDia  41
+#define stepPerRev  1000
+#define  mmPerSteps  2.0*M_PI/stepPerRev*wheelDia/2.0
+#define stepsPerMm  1/mmPerSteps
 
 int steps2DoRight = 0;
 int steps2DoLeft = 0;
 
-int numRobots = 3;
+#define  numRobots  3
 
-double posX[numRobots] = 0;
-double posY[numRobots] = 0;
-double theta[numRobots] = 0;
+double posX[numRobots];
+double posY[numRobots];
+double theta[numRobots];
 
 int getselector()
 {
@@ -141,7 +143,6 @@ int main()
     	ownGroup = 1;
     	ownNumber = 3;
 		sendRobotInfosBT(ownGroup,ownNumber);
-		goForward(40);
 		doSlaveStuffLoop();
     }
     // Group 2
@@ -289,11 +290,9 @@ void doSlaveStuffLoop(void){
 	bool execute = true;
 	int i = 0;
 	while (execute == true) {
-		updateMotorSpeed();
-		updatePosition();
 		if(i>4000){
 			char tmp[128];
-			sprintf(tmp, "===================== Position ==================\n\r Position X: %d\n\r Position Y: %d\n\r", posX, posY);
+			sprintf(tmp, "===================== Position ==================\n\r Position X: %d\n\r Position Y: %d\n\r", posX[ownNumber], posY[ownNumber]);
 			btcomSendString(tmp);
 			i = 0;
 		}
