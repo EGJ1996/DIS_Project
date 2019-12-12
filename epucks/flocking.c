@@ -25,8 +25,23 @@
 //#include "./a_d/advance_ad_scan/e_acc.h"
 #include "./a_d/advance_ad_scan/e_prox.h"
 #include "./a_d/advance_ad_scan/e_ad_conv.h"
-#include "./ircom/ircom.h"
+#include <ircom/ircom.h>
 
+
+#include <ircom/e_ad_conv.h>
+#include <epfl/e_init_port.h>
+#include <epfl/e_epuck_ports.h>
+#include <epfl/e_uart_char.h>
+#include <epfl/e_led.h>
+
+#include <epfl/e_led.h>
+#include <epfl/e_motors.h>
+#include <epfl/e_agenda.h>
+
+#include <stdio.h>
+#include <ircom/ircom.h>
+#include <btcom/btcom.h>
+#include <math.h>
 #define NB_SENSORS	  8	  // Number of distance sensors
 #define MIN_SENS          350     // Minimum sensibility value
 #define MAX_SENS          4096    // Maximum sensibility value
@@ -57,12 +72,11 @@
 
 
 int e_puck_matrix[16] = {-10,-10,-5,0,0,5,10,10,10,10,5,0,0,-5,-10,-10}; // for obstacle avoidance
-int sensor[8];
 char buffer[80];
 int i;
 
 
-int robot_id_u, robot_id;	// Unique and normalized (between 0 and FLOCK_SIZE-1) robot ID
+int robot_id;				// Unique and normalized (between 0 and FLOCK_SIZE-1) robot ID
 
 float relative_pos[FLOCK_SIZE][3];	// relative X, Z, Theta of all robots
 float prev_relative_pos[FLOCK_SIZE][3];	// Previous relative  X, Z, Theta values
@@ -86,6 +100,12 @@ void limit(int *number, int limit) {
 	if (*number < -limit)
 		*number = -limit;
 }
+
+int getselector()
+{
+    return SELECTOR0 + 2*SELECTOR1 + 4*SELECTOR2 + 8*SELECTOR3;
+}
+
 
 /*
  * Updates robot position with wheel speeds
@@ -118,13 +138,8 @@ void update_self_motion(int msl, int msr) {
  */
 void compute_wheel_speeds(int *msl, int *msr) 
 {
-	// Compute wanted position from Reynold's speed and current location
-	//float x = speed[robot_id][0]*cosf(loc[robot_id][2]) - speed[robot_id][1]*sinf(loc[robot_id][2]); // x in robot coordinates
-	//float z = -speed[robot_id][0]*sinf(loc[robot_id][2]) - speed[robot_id][1]*cosf(loc[robot_id][2]); // z in robot coordinates
-	
 	float x = speed[robot_id][0]*cosf(my_position[2]) + speed[robot_id][1]*sinf(my_position[2]); // x in robot coordinates
 	float z = -speed[robot_id][0]*sinf(my_position[2]) + speed[robot_id][1]*cosf(my_position[2]); // z in robot coordinates
-//	printf("id = %d, x = %f, y = %f\n", robot_id, x, z);
 	float Ku = 0.2;   // Forward control coefficient
 	float Kw = 1;  // Rotational control coefficient
 	float range = sqrtf(x*x + z*z);	  // Distance to the wanted position
@@ -139,7 +154,6 @@ void compute_wheel_speeds(int *msl, int *msr)
 	
 	*msl = (u - AXLE_LENGTH*w/2.0) * (1000.0 / WHEEL_RADIUS);
 	*msr = (u + AXLE_LENGTH*w/2.0) * (1000.0 / WHEEL_RADIUS);
-//	printf("bearing = %f, u = %f, w = %f, msl = %f, msr = %f\n", bearing, u, w, msl, msr);
 	limit(msl,MAX_SPEED);
 	limit(msr,MAX_SPEED);
 }
@@ -219,8 +233,9 @@ void reynolds_rules() {
  *  the range and bearing will be measured directly out of message RSSI and direction
 */
 void send_ping(void)  
-{
+{	
 	ircomSend(0+robot_id);
+	while(ircomSendDone() == 0);
 }
 
 /*
@@ -230,61 +245,80 @@ void send_ping(void)
 
 void process_received_ping_messages(void)
 {
-        const double *message_direction;
+        float message_direction;
         double message_rssi; // Received Signal Strength indicator
 	double theta;
 	double range;
 	char *inbuffer;	// Buffer for the receiver node
         int other_robot_id;
-	
-	// Prevent ircom going into idle mode, since it needs to listen to other robots too
-	ircomReceiveData.continuousListening = 1;
-	ircomReceiveWord();
-	
-	while(!ircomReceiveDone());
 
-	inbuffer = ircomReceiveData.word;
-	theta = ircomReceiveData.direction; 
-	message_rssi = ircomReceiveData.distance;
+	// While there are messages in the message queu	
+	while(1){
+		
+		IrcomMessage imsg;
+		ircomPopMessage(&imsg);	
+		if(imsg.error > 0){
+			// pop returned an error, hence there are no more messages in the queue(break out of the while loop)
+			break;
+		}
+		message_direction = imsg.direction; 
+		message_rssi = imsg.distance;
 
-        theta =	-atan2(y,x);
-        theta = theta + my_position[2]; // find the relative theta;
-	range = sqrt((1/message_rssi));
+	        theta = theta + my_position[2]; // find the relative theta;
+		range = sqrt((1/message_rssi));
 		
 
-	other_robot_id = (int)(inbuffer[5]-'0');  // since the name of the sender is in the received message. Note: this does not work for robots having id bigger than 9!
+		other_robot_id = (int)imsg.value; // since the name of the sender is in the received message. Note: this does not work for robots having id bigger than 9!
 		
-	prev_relative_pos[other_robot_id][0] = relative_pos[other_robot_id][0];
-	prev_relative_pos[other_robot_id][1] = relative_pos[other_robot_id][1];
+		prev_relative_pos[other_robot_id][0] = relative_pos[other_robot_id][0];
+		prev_relative_pos[other_robot_id][1] = relative_pos[other_robot_id][1];
 
-	relative_pos[other_robot_id][0] = range*cos(theta);  // relative x pos
-	relative_pos[other_robot_id][1] = -1.0 * range*sin(theta);   // relative y pos
+		relative_pos[other_robot_id][0] = range*cos(theta);  // relative x pos
+		relative_pos[other_robot_id][1] = -1.0 * range*sin(theta);   // relative y pos
 
-	printf("Robot %s, from robot %d, x: %g, y: %g, theta %g, my theta %g\n",robot_name,other_robot_id,relative_pos[other_robot_id][0],relative_pos[other_robot_id][1],-atan2(y,x)*180.0/3.141592,my_position[2]*180.0/3.141592);
+		printf("Robot %s, from robot %d, x: %g, y: %g, theta %g, my theta %g\n",robot_name,other_robot_id,relative_pos[other_robot_id][0],relative_pos[other_robot_id][1],message_direction,my_position[2]*180.0/3.141592);
 		
-	relative_speed[other_robot_id][0] = relative_speed[other_robot_id][0]*0.0 + 1.0*(1/DELTA_T)*(relative_pos[other_robot_id][0]-prev_relative_pos[other_robot_id][0]);
-	relative_speed[other_robot_id][1] = relative_speed[other_robot_id][1]*0.0 + 1.0*(1/DELTA_T)*(relative_pos[other_robot_id][1]-prev_relative_pos[other_robot_id][1]);		
+		relative_speed[other_robot_id][0] = relative_speed[other_robot_id][0]*0.0 + 1.0*(1/DELTA_T)*(relative_pos[other_robot_id][0]-prev_relative_pos[other_robot_id][0]);
+		relative_speed[other_robot_id][1] = relative_speed[other_robot_id][1]*0.0 + 1.0*(1/DELTA_T)*(relative_pos[other_robot_id][1]-prev_relative_pos[other_robot_id][1]);
+	}	
 		 
 }
 
 
 // the main function
 int main(){ 
-	
+
+		
 	int msl, msr;			// Wheel speeds
 	/*Webots 2018b*/
 	float msl_w, msr_w;
 	/*Webots 2018b*/
 	int bmsl, bmsr, sum_sensors;	// Braitenberg parameters
 	int i;				// Loop counter
-	int distances[NB_SENSORS];	// Array for the distance sensor readings
-	int max_sens;			// Store highest sensor value
-	
- 	reset();			// Resetting the robot
+	int max_sens;	
 
+	int sensor[NB_SENSORS];
+	int value;	
+ 	// reset();			// Resetting the robot
+
+	
+	e_init_port();
+    	e_init_ad_scan();
+    	e_init_uart1();
+    	e_led_clear();	
+    	e_init_motors();
+    	e_start_agendas_processing();
+
+
+    	e_calibrate_ir(); 
+
+    	ircomStart();
+	ircomEnableContinuousListening();
+    	ircomListen();
 	msl = 0; msr = 0; 
 	max_sens = 0; 
 	
+	robot_id = getselector();
 	// Forever
 	for(;;){
 		
@@ -294,15 +328,19 @@ int main(){
 		max_sens = 0;
                 
 		/* Braitenberg */
+		
+		for(i=0;i<NB_SENSORS;i++){
+			sensor[i] = e_get_prox(i);
+		}
+		
 		for(i=0;i<NB_SENSORS;i++) 
-		{
-			    distances[i]=wb_distance_sensor_get_value(ds[i]); //Read sensor values
-                            sum_sensors += distances[i]; // Add up sensor values
-                            max_sens = max_sens>distances[i]?max_sens:distances[i]; // Check if new highest sensor value
+		{	    
+			    value = (sensor[i]>>4);
+                            max_sens = max_sens>sensor[i]?max_sens:sensor[i]; // Check if new highest sensor value
 
                             // Weighted sum of distance sensor values for Braitenburg vehicle
-                            bmsr += e_puck_matrix[i] * distances[i];
-                            bmsl += e_puck_matrix[i+NB_SENSORS] * distances[i];
+			    bmsr += e_puck_matrix[i] * value; 
+                            bmsl += e_puck_matrix[i+NB_SENSORS] * value; 
                  }
 
 		 // Adapt Braitenberg values (empirical tests)
@@ -338,18 +376,9 @@ int main(){
 		// Add Braitenberg
 		msl += bmsl;
 		msr += bmsr;
-                  
-		/*Webots 2018b*/
-		// Set speed
-		msl_w = msl*MAX_SPEED_WEB/1000;
-		msr_w = msr*MAX_SPEED_WEB/1000;
-		wb_motor_set_velocity(left_motor, msl_w);
-                wb_motor_set_velocity(right_motor, msr_w);
-		//wb_differential_wheels_set_speed(msl,msr);
-		/*Webots 2018b*/
+ 		e_set_speed_left(msl);
+		e_set_speed_right(msr);		
     
-		// Continue one step
-		wb_robot_step(TIME_STEP);
 	}
 }  
   
