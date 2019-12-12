@@ -33,6 +33,9 @@
 #include <ircom/ircom.h>
 #include <btcom/btcom.h>
 #include <math.h>
+
+#include "main.h"
+
 typedef enum { false, true } bool;
 
 float sensorDir[NB_IR_SENSORS] = {0.2967, 0.8727, 1.5708, 2.6180, 3.6652, 4.7124, 5.4105, 5.9865};
@@ -48,16 +51,18 @@ double stepsPerMm = 1/mmPerSteps;
 int steps2DoRight = 0;
 int steps2DoLeft = 0;
 
-double posX = 0;
-double posY = 0;
-double theta = 0;
+int numRobots = 3;
+
+double posX[numRobots] = 0;
+double posY[numRobots] = 0;
+double theta[numRobots] = 0;
 
 int getselector()
 {
     return SELECTOR0 + 2*SELECTOR1 + 4*SELECTOR2 + 8*SELECTOR3;
 }
 
-void obstacleAvoidance();
+
 
 int main()
 {
@@ -264,7 +269,7 @@ void slaveRespondsLeader(int group, int slave){
 	while (ircomSendDone() == 0); 
 }
 
-bool isPartOfGroup(int message){
+int isPartOfGroup(int message){
 	int receivedGroup = (int) message/10;
 	return ownGroup == receivedGroup;
 }
@@ -309,37 +314,10 @@ void sendRobotInfosBT(int group, int number){
 	}
 }
 
-void updatePosition(){
-	int stepsLeft = e_get_steps_left();
-	int stepsRight = e_get_steps_right();
+void updateRobotsPosition(int val, double distance, double heading){
+	int robotNumber = (int)val - (int)val/10;
 
-	posX += cos(theta)*stepsRight*mmPerSteps;
-	posY += sin(theta)*stepsLeft*mmPerSteps;
-}
-
-void goForward(int distance_mm){
-	int steps = (int)stepsPerMm*distance_mm;
-	steps2DoLeft = steps;
-	steps2DoRight = steps;
-}
-
-void updateMotorSpeed(){
-	if(steps2DoRight-e_get_steps_right>0){
-		e_set_speed_right(500);
-	}
-	else if ( steps2DoRight-e_get_steps_right < 0){
-		e_set_speed_right(-500);
-	}
-	else{
-		e_set_speed_right(0);
-	}
-	if(steps2DoLeft-e_get_steps_left>0){
-		e_set_speed_left(500);
-	}
-	else if ( steps2DoLeft-e_get_steps_left < 0){
-		e_set_speed_left(-500);
-	}
-	else{
-		e_set_speed_left(0);
-	}
+	// the angle is rotated 90°
+	posX[robotNumber] = cos(heading-M_PI/2.0)*distance;
+	posY[robotNumber] = sin(heading-M_PI/2.0)*distance;
 }

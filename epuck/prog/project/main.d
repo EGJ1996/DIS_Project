@@ -8,4 +8,4 @@ main.o: main.c ../../src/ircom/e_ad_conv.h ../../src/epfl/e_init_port.h \
  ../../src/ircom/e_ad_conv.h ../../src/ircom/ircomReceive.h \
  ../../src/ircom/ircomSend.h ../../src/ircom/ircomTools.h \
  ../../src/ircom/ircomMessages.h ../../src/btcom/btcom.h \
- ../../src/std_microchip/include/math.h
+ ../../src/std_microchip/include/math.h main.h
