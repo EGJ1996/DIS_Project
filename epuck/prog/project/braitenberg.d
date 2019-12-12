@@ -1,1 +1,0 @@
-braitenberg.o: braitenberg.c
