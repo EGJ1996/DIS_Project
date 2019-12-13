@@ -5,12 +5,14 @@
 void obstacleAvoidance();
 
 void leaderPingSlave();
-void slaveRespondsLeader(int group, int slave);
+void slaveRespondsLeader();
 int isPartOfGroup(int message);
 void doLeaderStuffLoop(void);
 void doSlaveStuffLoop(void);
 void sendRobotInfosBT(int group, int number);
 void updateRobotsPosition(int val, double distance, double heading);
+
+void braitenAndComm(void);
 
 
 #endif

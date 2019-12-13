@@ -54,11 +54,11 @@ int ownNumber = 0;
 int steps2DoRight = 0;
 int steps2DoLeft = 0;
 
-#define  numRobots  3
+#define  NB_ROBOTS_PER_GROUP  3
 
-double posX[numRobots];
-double posY[numRobots];
-double theta[numRobots];
+double posX[NB_ROBOTS_PER_GROUP];
+double posY[NB_ROBOTS_PER_GROUP];
+double theta[NB_ROBOTS_PER_GROUP];
 
 int getselector()
 {
@@ -97,10 +97,14 @@ int main()
     //e_activate_agenda(flocking, 5000);
 
     // acting as sender
+    int i = 0;
     if (selector == 1)
     {    	
     	ownGroup = 1;
     	ownNumber = 1; // leader
+
+    	for(i = 0; i < 8; i+=2)
+    		e_set_led(i+1,1);
 
 		sendRobotInfosBT(ownGroup,ownNumber);
 
@@ -114,14 +118,16 @@ int main()
     {
     	ownGroup = 1;
     	ownNumber = 2;
+    	for(i = 0; i < 8; i+=2)
+    		e_set_led(i+1,1);
 		sendRobotInfosBT(ownGroup,ownNumber);
-
-		int i = 0;
-		treatIncommingMessages();
+		doSlaveStuffLoop();
     }
     else if (selector == 3){
     	ownGroup = 1;
     	ownNumber = 3;
+    	for(i = 0; i < 8; i+=2)
+    		e_set_led(i+1,1);
 		sendRobotInfosBT(ownGroup,ownNumber);
 		doSlaveStuffLoop();
     }
@@ -129,18 +135,26 @@ int main()
     else if (selector == 4){
     	ownGroup = 2;
     	ownNumber = 1;
+
+    	for(i = 0; i < 8; i+=2)
+    		e_set_led(i,1);
+
 		sendRobotInfosBT(ownGroup,ownNumber);
 		while(1);
     }
     else if (selector == 5){
     	ownGroup = 2;
     	ownNumber = 2;
+    	for(i = 0; i < 8; i+=2)
+    		e_set_led(i,1);
 		sendRobotInfosBT(ownGroup,ownNumber);
 		while(1);
     }
     else if (selector == 6){
     	ownGroup = 2;
     	ownNumber = 3;
+    	for(i = 0; i < 8; i+=2)
+    		e_set_led(i,1);
 		sendRobotInfosBT(ownGroup,ownNumber);
 		while(1);
     }
@@ -242,11 +256,11 @@ void obstacleAvoidance()
 // and the slave group*10+slavenumber
 void leaderPingSlave(){
 	ircomSend(ownGroup*10+1);	
-	while (ircomSendDone() == 0); 
+	
 }
 
-void slaveRespondsLeader(int group, int slave){
-	ircomSend(group*10+slave);
+void slaveRespondsLeader(){
+	ircomSend(ownGroup*10+ownNumber);
 	while (ircomSendDone() == 0); 
 }
 
@@ -255,16 +269,31 @@ int isPartOfGroup(int message){
 	return ownGroup == receivedGroup;
 }
 
+void braitenAndComm(void){
+	// we wait that the message has been sent
+	while (ircomSendDone() == 0); 
+	//we check and update the received messages
+	IrcomMessage imsg;
+	do{//while we have messages in the queue
+	    ircomPopMessage(&imsg);
+	    if (imsg.error == 0){//we get a goog message so we update the robot relative position
+	    	//int val = (int)imsg.value;
+	    	updateRobotsPosition((int) imsg.value, (double)imsg.distance, (double) imsg.direction);
+	    }
+	}while (imsg.error != -1);
+	//we avoid any obstacle ()
+	braitenberg();
+	// we say all the other robots who we are
+	leaderPingSlave();
+}
+
 void doLeaderStuffLoop(void){
 	bool execute = true;
-	e_activate_agenda(braitenberg, 1000); //every 500ms we do obstacle sensing/avoidance
-	e_activate_agenda(leaderPingSlave, 2001); //every 500ms we do obstacle sensing/avoidance
-	
+
+	leaderPingSlave();
+	e_activate_agenda(braitenAndComm, 1000); //every 500ms we do obstacle sensing/avoidance
+
 	while (execute == true){
-		/*leaderPingSlave(ownGroup);
-		int j;
-		for(j = 0; j < 200000; j++)
-			asm("nop");//*/
 	}
 
 }
@@ -275,7 +304,7 @@ void doSlaveStuffLoop(void){
 	while (execute == true) {
 		if(i>4000){
 			char tmp[128];
-			sprintf(tmp, "===================== Position ==================\n\r Position X: %d\n\r Position Y: %d\n\r", posX[ownNumber], posY[ownNumber]);
+			sprintf(tmp, "===================== Position ==================\n\r Position X: %f\n\r Position Y: %f\n\r", posX[ownNumber], posY[ownNumber]);
 			btcomSendString(tmp);
 			i = 0;
 		}
@@ -324,9 +353,13 @@ void treatIncommingMessages(){
 }
 
 void updateRobotsPosition(int val, double distance, double heading){
-	int robotNumber = (int)val - (int)val/10;
+	if ((int)val/10 == ownGroup){
+		int robotNumber = (int)(val - (int)val/10);
+		if(robotNumber > 0 && robotNumber < NB_ROBOTS_PER_GROUP){
 
-	// the angle is rotated 90°
-	posX[robotNumber-1] = cos(heading-M_PI/2.0)*distance;
-	posY[robotNumber-1] = sin(heading-M_PI/2.0)*distance;
+			// the angle is rotated 90°
+			posX[robotNumber-1] = cos(heading-M_PI/2.0)*distance;
+			posY[robotNumber-1] = sin(heading-M_PI/2.0)*distance;
+		}
+	}
 }
