@@ -17,28 +17,24 @@ doSlaveStuffLoop	main.c	/^void doSlaveStuffLoop(void){$/;"	f
 false	main.c	/^typedef enum { false, true } bool;$/;"	e	enum:__anon1	file:
 getselector	main.c	/^int getselector()$/;"	f
 isPartOfGroup	main.c	/^int isPartOfGroup(int message){$/;"	f
-leaderPingSlave	main.c	/^void leaderPingSlave(){$/;"	f
 main	main.c	/^int main()$/;"	f
 mmPerSteps	main.c	51;"	d	file:
-obstacleAvoidance	main.c	/^void obstacleAvoidance()$/;"	f
-obstacleAvoidanceSpeed	main.c	/^int obstacleAvoidanceSpeed = 500.0;$/;"	v
-obstacleAvoidanceThreshold	main.c	/^int obstacleAvoidanceThreshold = 30.0;$/;"	v
 orientation	metrics.c	/^double orientation(int nbRobots, double* headingRobots){$/;"	f
 ownGroup	main.c	/^int ownGroup = 0;$/;"	v
 ownNumber	main.c	/^int ownNumber = 0;$/;"	v
 performanceGlobal	metrics.c	/^double performanceGlobal(void){$/;"	f
 performanceInstant	metrics.c	/^double performanceInstant(void){$/;"	f
-posX	main.c	/^double posX[NB_ROBOTS_PER_GROUP];$/;"	v
-posY	main.c	/^double posY[NB_ROBOTS_PER_GROUP];$/;"	v
+posX	main.c	/^double posX[NB_ROBOTS_PER_GROUP] = {0,0,0};$/;"	v
+posY	main.c	/^double posY[NB_ROBOTS_PER_GROUP] = {0,0,0};$/;"	v
+sendBtUpdate	main.c	/^void sendBtUpdate(){$/;"	f
+sendPing	main.c	/^void sendPing(){$/;"	f
 sendRobotInfosBT	main.c	/^void sendRobotInfosBT(int group, int number){$/;"	f
 sensorDir	main.c	/^float sensorDir[NB_IR_SENSORS] = {0.2967, 0.8727, 1.5708, 2.6180, 3.6652, 4.7124, 5.4105, 5.9865};$/;"	v
-slaveRespondsLeader	main.c	/^void slaveRespondsLeader(){$/;"	f
 stepPerRev	main.c	50;"	d	file:
 steps2DoLeft	main.c	/^int steps2DoLeft = 0;$/;"	v
 steps2DoRight	main.c	/^int steps2DoRight = 0;$/;"	v
 stepsPerMm	main.c	52;"	d	file:
-theta	main.c	/^double theta[NB_ROBOTS_PER_GROUP];$/;"	v
-treatIncommingMessages	main.c	/^void treatIncommingMessages(){$/;"	f
+theta	main.c	/^double theta[NB_ROBOTS_PER_GROUP] = {0,0,0};$/;"	v
 true	main.c	/^typedef enum { false, true } bool;$/;"	e	enum:__anon1	file:
 updateRobotsPosition	main.c	/^void updateRobotsPosition(int val, double distance, double heading){$/;"	f
 velocities	metrics.c	/^double velocities(int nbRobots, double* centerOfMass){$/;"	f

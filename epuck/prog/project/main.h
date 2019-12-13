@@ -4,8 +4,7 @@
 
 void obstacleAvoidance();
 
-void leaderPingSlave();
-void slaveRespondsLeader();
+void sendPing();
 int isPartOfGroup(int message);
 void doLeaderStuffLoop(void);
 void doSlaveStuffLoop(void);

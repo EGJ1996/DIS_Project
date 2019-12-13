@@ -56,9 +56,9 @@ int steps2DoLeft = 0;
 
 #define  NB_ROBOTS_PER_GROUP  3
 
-double posX[NB_ROBOTS_PER_GROUP];
-double posY[NB_ROBOTS_PER_GROUP];
-double theta[NB_ROBOTS_PER_GROUP];
+double posX[NB_ROBOTS_PER_GROUP] = {0,0,0};
+double posY[NB_ROBOTS_PER_GROUP] = {0,0,0};
+double theta[NB_ROBOTS_PER_GROUP] = {0,0,0};
 
 int getselector()
 {
@@ -76,7 +76,6 @@ int main()
     e_led_clear();	
     e_init_motors();
     e_start_agendas_processing();
-    //e_init_prox();
 
     // wait for s to start
     //btcomWaitForCommand('s');
@@ -106,9 +105,7 @@ int main()
     	for(i = 0; i < 8; i+=2)
     		e_set_led(i+1,1);
 
-		sendRobotInfosBT(ownGroup,ownNumber);
-
-	    leaderPingSlave(ownGroup);
+	    sendPing();
 	    doLeaderStuffLoop();
 	    btcomSendString(".");
     }
@@ -120,8 +117,10 @@ int main()
     	ownNumber = 2;
     	for(i = 0; i < 8; i+=2)
     		e_set_led(i+1,1);
-		sendRobotInfosBT(ownGroup,ownNumber);
-		doSlaveStuffLoop();
+		
+	    sendPing();
+	    doLeaderStuffLoop();
+	    btcomSendString(".");
     }
     else if (selector == 3){
     	ownGroup = 1;
@@ -184,83 +183,12 @@ int main()
     return 0;
 }
 
-int obstacleAvoidanceThreshold = 30.0;
-int obstacleAvoidanceSpeed = 500.0;
-
-void obstacleAvoidance()
-{    
-    // check if an obstacle is perceived 
-    double reading = 0.0;
-    int obstaclePerceived = 0;
-    int i=0;
-    double x = 0.0, y = 0.0;
-    for (i = 0; i < 8; i++)
-    {
-        reading = e_get_calibrated_prox(i);
-	// if signal above noise
-	if(reading >= obstacleAvoidanceThreshold)
-	{
-	    obstaclePerceived = 1;
-	    
-	    // compute direction to escape
-	    double signal = reading - obstacleAvoidanceThreshold;
-	    x += -cos(sensorDir[i]) * signal / 8.0;
-	    y += sin(sensorDir[i]) * signal / 8.0;
-	}
-    }
-    
-    // no obstacles to avoid, return immediately
-    if (obstaclePerceived == 0)
-    {
-	// go straight forward
-	// change movement direction
-	e_set_speed_left(obstacleAvoidanceSpeed);
-	e_set_speed_right(obstacleAvoidanceSpeed);
-	// return obstaclePerceived;
-	return;
-    }
-    
-    double desiredAngle = atan2 (y, x);
-    
-    double leftSpeed = 0.0;
-    double rightSpeed = 0.0;
-    
-    // turn left
-    if (desiredAngle >= 0.0)
-    {
-	leftSpeed  = cos(desiredAngle);
-	rightSpeed = 1;
-    }
-    // turn right
-    else
-    {
-	leftSpeed = 1;
-	rightSpeed = cos(desiredAngle);
-    }
-    
-    // rescale values
-    leftSpeed *= obstacleAvoidanceSpeed;
-    rightSpeed *= obstacleAvoidanceSpeed;
-    
-    // change movement direction
-    e_set_speed_left(leftSpeed);
-    e_set_speed_right(rightSpeed);
-    
-    // advertise obstacle avoidance in progress
-    // return 1;
-}
-
 
 // group is 1 or 2
 // the leader will send group*10 
 // and the slave group*10+slavenumber
-void leaderPingSlave(){
-	ircomSend(ownGroup*10+1);	
-	
-}
-
-void slaveRespondsLeader(){
-	ircomSend(ownGroup*10+ownNumber);
+void sendPing(){
+	ircomSend((int)ownGroup*10+ownNumber);	
 	while (ircomSendDone() == 0); 
 }
 
@@ -270,28 +198,53 @@ int isPartOfGroup(int message){
 }
 
 void braitenAndComm(void){
+	static int t = 0;
 	// we wait that the message has been sent
-	while (ircomSendDone() == 0); 
+	e_set_body_led(1);
 	//we check and update the received messages
 	IrcomMessage imsg;
 	do{//while we have messages in the queue
 	    ircomPopMessage(&imsg);
-	    if (imsg.error == 0){//we get a goog message so we update the robot relative position
-	    	//int val = (int)imsg.value;
-	    	updateRobotsPosition((int) imsg.value, (double)imsg.distance, (double) imsg.direction);
+	    
+	    //e_set_body_led(0);
+	    if (imsg.error == 0){//we get a good message so we update the robot relative position
+	    	int val = (int)imsg.value;
+	    	double distance = (double)imsg.distance;
+	    	double direction = (double)imsg.direction;
+	    	updateRobotsPosition(val, distance, direction);
+
+	    	//char tmp[255];
+			//sprintf(tmp, "Message robot: %d distance: %f direction: %f\n\r",(val-(val/10)*10), distance, direction);
+			//btcomSendString(tmp);
+	    	//
 	    }
 	}while (imsg.error != -1);
+	e_set_body_led(0);
 	//we avoid any obstacle ()
 	braitenberg();
 	// we say all the other robots who we are
-	leaderPingSlave();
+	if(t>2){
+		e_set_body_led(1);
+		sendPing();
+		e_set_body_led(0);
+		t = 0;
+	}
+	else
+		t -=- 1;
+}
+
+void sendBtUpdate(){
+	char tmp[255];
+	sprintf(tmp, "\n\r\n\rRobot N°: %d Group N° %d\n\r 1 Position X: %f\t 1 Position Y: %f\n\r2 Position X: %f\t 2 Position Y: %f\n\r3 Position X: %f\t 3 Position Y: %f\n\r",ownNumber,ownGroup, posX[0], posY[0], posX[1], posY[1], posX[2], posY[2]);
+	btcomSendString(tmp);
 }
 
 void doLeaderStuffLoop(void){
 	bool execute = true;
 
-	leaderPingSlave();
+	sendPing();
 	e_activate_agenda(braitenAndComm, 1000); //every 500ms we do obstacle sensing/avoidance
+	e_activate_agenda(sendBtUpdate, 50000);
 
 	while (execute == true){
 	}
@@ -301,15 +254,7 @@ void doLeaderStuffLoop(void){
 void doSlaveStuffLoop(void){
 	bool execute = true;
 	int i = 0;
-	while (execute == true) {
-		if(i>4000){
-			char tmp[128];
-			sprintf(tmp, "===================== Position ==================\n\r Position X: %f\n\r Position Y: %f\n\r", posX[ownNumber], posY[ownNumber]);
-			btcomSendString(tmp);
-			i = 0;
-		}
-		i++;
-	}
+	while(1){};
 }
 
 void sendRobotInfosBT(int group, int number){
@@ -325,36 +270,11 @@ void sendRobotInfosBT(int group, int number){
 	}
 }
 
-void treatIncommingMessages(){
-	////while (i < 200) //for loop better
-	//	{
-		    // ircomListen();
-		    IrcomMessage imsg;
-		    ircomPopMessage(&imsg);
-		    if (imsg.error == 0)
-		    {
-				e_set_led(1, 2);
-			int val = (int) imsg.value;
-		    
-			/* Send Value*/		
-			/*char tmp[128];
-			sprintf(tmp, "Receive successful : %d  - distance=%f \t direction=%f \n\r", val, (double)imsg.distance, (double)imsg.direction);
-			btcomSendString(tmp);*/
-			updateRobotsPosition(val, (double)imsg.distance, (double)imsg.direction);
-		    }
-		    else if (imsg.error > 0)
-		    {
-			//btcomSendString("Receive failed \n\r");		
-		    }
-		    // else imsg.error == -1 -> no message available in the queue
 
-		    //if (imsg.error != -1) i++;
-		//}
-}
 
 void updateRobotsPosition(int val, double distance, double heading){
 	if ((int)val/10 == ownGroup){
-		int robotNumber = (int)(val - (int)val/10);
+		int robotNumber = (int)(val-(val/10)*10);
 		if(robotNumber > 0 && robotNumber < NB_ROBOTS_PER_GROUP){
 
 			// the angle is rotated 90°
