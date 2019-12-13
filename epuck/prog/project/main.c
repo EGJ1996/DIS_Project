@@ -35,6 +35,7 @@
 #include <math.h>
 
 #include "main.h"
+#include "braitenberg.h"
 
 #define M_PI 3.141569
 
@@ -75,7 +76,7 @@ int main()
     e_led_clear();	
     e_init_motors();
     e_start_agendas_processing();
-    e_init_prox();
+    //e_init_prox();
 
     // wait for s to start
     //btcomWaitForCommand('s');
@@ -92,7 +93,7 @@ int main()
     int selector = getselector();
 
     // activate obstacle avoidance
-    //e_activate_agenda(obstacleAvoidance, 5000); //every 500ms we do obstacle sensing/avoidance
+    
     //e_activate_agenda(flocking, 5000);
 
     // acting as sender
@@ -239,8 +240,8 @@ void obstacleAvoidance()
 // group is 1 or 2
 // the leader will send group*10 
 // and the slave group*10+slavenumber
-void leaderPingSlave(int group){
-	ircomSend(group*10+1);	
+void leaderPingSlave(){
+	ircomSend(ownGroup*10+1);	
 	while (ircomSendDone() == 0); 
 }
 
@@ -256,11 +257,14 @@ int isPartOfGroup(int message){
 
 void doLeaderStuffLoop(void){
 	bool execute = true;
+	e_activate_agenda(braitenberg, 1000); //every 500ms we do obstacle sensing/avoidance
+	e_activate_agenda(leaderPingSlave, 2001); //every 500ms we do obstacle sensing/avoidance
+	
 	while (execute == true){
-		leaderPingSlave(ownGroup);
+		/*leaderPingSlave(ownGroup);
 		int j;
 		for(j = 0; j < 200000; j++)
-			asm("nop");
+			asm("nop");//*/
 	}
 
 }
@@ -315,7 +319,7 @@ void treatIncommingMessages(){
 		    }
 		    // else imsg.error == -1 -> no message available in the queue
 
-		    if (imsg.error != -1) i++;
+		    //if (imsg.error != -1) i++;
 		//}
 }
 
