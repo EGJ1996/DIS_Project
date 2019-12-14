@@ -1,0 +1,20 @@
+Webots Project File version R2019b
+perspectives: 000000ff00000000fd00000003000000000000000000000000fc0100000001fb0000001a0044006f00630075006d0065006e0074006100740069006f006e0000000000ffffffff0000006900ffffff00000001000002f500000356fc0200000001fb0000001400540065007800740045006400690074006f00720100000016000003560000008900ffffff000000030000073d0000007dfc0100000001fb0000000e0043006f006e0073006f006c006501000000000000073d0000006900ffffff000004460000035600000001000000020000000100000008fc00000000
+simulationViewPerspectives: 000000ff0000000100000002000001000000051f0100000002010000000100
+sceneTreePerspectives: 000000ff00000001000000020000028b000000fa0100000002010000000200
+maximizedDockId: -1
+centralWidgetVisible: 1
+selectionDisabled: 0
+viewpointLocked: 0
+orthographicViewHeight: 1
+textFiles: 0 "controllers/child_controller/child_controller.c" "controllers/supervisor_controller/supervisor_controller.c"
+renderingDevicePerspectives: rob2:camera;1;1;0;0
+renderingDevicePerspectives: rob0:camera;1;1;0;0
+renderingDevicePerspectives: rob1:camera;1;1;0;0
+renderingDevicePerspectives: rob5:camera;1;1;0;0
+renderingDevicePerspectives: rob9:camera;1;1;0;0
+renderingDevicePerspectives: rob8:camera;1;1;0;0
+renderingDevicePerspectives: rob3:camera;1;1;0;0
+renderingDevicePerspectives: rob4:camera;1;1;0;0
+renderingDevicePerspectives: rob7:camera;1;1;0;0
+renderingDevicePerspectives: rob6:camera;1;1;0;0

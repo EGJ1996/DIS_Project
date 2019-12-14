@@ -1,0 +1,11 @@
+Webots Proto Cache File version 1.4
+protoFileHash: 1791e9cc087a231a806fac95417aa53d
+containsDevices: 1
+baseType: DistanceSensor
+slotType: 
+parameters: translation,rotation,name
+tags: 
+license: 
+licenseUrl: 
+documentationUrl: 
+info: 
