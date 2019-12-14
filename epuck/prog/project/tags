@@ -4,21 +4,57 @@
 !_TAG_PROGRAM_NAME	Exuberant Ctags	//
 !_TAG_PROGRAM_URL	http://ctags.sourceforge.net	/official site/
 !_TAG_PROGRAM_VERSION	5.9~svn20110310	//
-M_PI	main.c	40;"	d	file:
-NB_ROBOTS_PER_GROUP	main.c	57;"	d	file:
+ABS	flocking.h	28;"	d
+AXLE_LENGTH	flocking.h	10;"	d
+DELTA_T	flocking.h	13;"	d
+FLOCK_SIZE	flocking.h	7;"	d
+LEFT	braitenberg.h	6;"	d
+LEFT	flocking.h	31;"	d
+MAX_SPEED	flocking.h	5;"	d
+MAX_SPEED_WEB	flocking.h	6;"	d
+MIGRATION_WEIGHT	flocking.h	24;"	d
+MIGRATORY_URGE	flocking.h	26;"	d
+M_PI	flocking.h	8;"	d
+M_PI	main.c	41;"	d	file:
+NB_ROBOTS_PER_GROUP	main.c	58;"	d	file:
+NB_SENSORS	flocking.h	4;"	d
+RIGHT	braitenberg.h	5;"	d
+RIGHT	flocking.h	30;"	d
+RULE1_THRESHOLD	flocking.h	16;"	d
+RULE1_WEIGHT	flocking.h	17;"	d
+RULE2_THRESHOLD	flocking.h	19;"	d
+RULE2_WEIGHT	flocking.h	20;"	d
+RULE3_WEIGHT	flocking.h	22;"	d
+SPEED_UNIT_RADS	flocking.h	11;"	d
+WHEEL_RADIUS	flocking.h	12;"	d
+_BRAIT_H	braitenberg.h	2;"	d
+_FLOCKING_H	flocking.h	2;"	d
 _MAIN	main.h	3;"	d
 _METRICS	metrics.h	2;"	d
+bSpeeds	main.c	/^int bSpeeds[2] = {0,0};$/;"	v
 bool	main.c	/^typedef enum { false, true } bool;$/;"	t	typeref:enum:__anon1	file:
 braitenAndComm	main.c	/^void braitenAndComm(void){$/;"	f
-braitenberg	braitenberg.c	/^void braitenberg(void) {$/;"	f
+braitenberg	braitenberg.c	/^void braitenberg(int* bSpeeds) {$/;"	f
+buffer	flocking.c	/^char buffer[80];$/;"	v
+call_update_self_motion	main.c	/^void call_update_self_motion(void){$/;"	f
 cohesion	metrics.c	/^double cohesion(int nbRobots, double** positionRobots){$/;"	f
+compute_wheel_speeds	flocking.c	/^void compute_wheel_speeds(int* msl, int* msr) $/;"	f
 doLeaderStuffLoop	main.c	/^void doLeaderStuffLoop(void){$/;"	f
 doSlaveStuffLoop	main.c	/^void doSlaveStuffLoop(void){$/;"	f
+e_puck_matrix	flocking.c	/^int e_puck_matrix[16] = {-10,-10,-5,0,0,5,10,10,10,10,5,0,0,-5,-10,-10}; \/\/ for obstacle avoidance$/;"	v
 false	main.c	/^typedef enum { false, true } bool;$/;"	e	enum:__anon1	file:
+get_self_position	flocking.c	/^void get_self_position(float* x, float* y){$/;"	f
 getselector	main.c	/^int getselector()$/;"	f
+i	flocking.c	/^int i;$/;"	v
+initialized	flocking.c	/^int initialized[FLOCK_SIZE];		\/\/ != 0 if initial positions have been received$/;"	v
 isPartOfGroup	main.c	/^int isPartOfGroup(int message){$/;"	f
+limit	flocking.c	/^void limit(int *number, int limit) {$/;"	f
 main	main.c	/^int main()$/;"	f
-mmPerSteps	main.c	51;"	d	file:
+migr	flocking.c	/^float migr[2] = {0,-2};	        \/\/ Migration vector$/;"	v
+mmPerSteps	main.c	52;"	d	file:
+msl	main.c	/^int msl = 0,msr = 0;$/;"	v
+msr	main.c	/^int msl = 0,msr = 0;$/;"	v
+my_position	flocking.c	/^float my_position[3];     		\/\/ X, Z, Theta of the current robot$/;"	v
 orientation	metrics.c	/^double orientation(int nbRobots, double* headingRobots){$/;"	f
 ownGroup	main.c	/^int ownGroup = 0;$/;"	v
 ownNumber	main.c	/^int ownNumber = 0;$/;"	v
@@ -26,16 +62,32 @@ performanceGlobal	metrics.c	/^double performanceGlobal(void){$/;"	f
 performanceInstant	metrics.c	/^double performanceInstant(void){$/;"	f
 posX	main.c	/^double posX[NB_ROBOTS_PER_GROUP] = {0,0,0};$/;"	v
 posY	main.c	/^double posY[NB_ROBOTS_PER_GROUP] = {0,0,0};$/;"	v
+prev_my_position	flocking.c	/^float prev_my_position[3];  		\/\/ X, Z, Theta of the current robot in the previous time step$/;"	v
+prev_relative_pos	flocking.c	/^float prev_relative_pos[FLOCK_SIZE][3];	\/\/ Previous relative  X, Z, Theta values$/;"	v
+process_received_ping_messages	flocking.c	/^void process_received_ping_messages(int val, double distance, double heading)$/;"	f
+rSpeeds	main.c	/^int rSpeeds[2] = {0,0};$/;"	v
+relative_pos	flocking.c	/^float relative_pos[FLOCK_SIZE][3];	\/\/ relative X, Z, Theta of all robots$/;"	v
+relative_speed	flocking.c	/^float relative_speed[FLOCK_SIZE][2];	\/\/ Speeds calculated with Reynold's rules$/;"	v
+reynolds_rules	flocking.c	/^void reynolds_rules(void) {$/;"	f
+robot_id	flocking.c	/^int robot_id = 1;				\/\/ Unique and normalized (between 0 and FLOCK_SIZE-1) robot ID$/;"	v
+robot_name	flocking.c	/^char* robot_name;$/;"	v
 sendBtUpdate	main.c	/^void sendBtUpdate(){$/;"	f
 sendPing	main.c	/^void sendPing(){$/;"	f
 sendRobotInfosBT	main.c	/^void sendRobotInfosBT(int group, int number){$/;"	f
 sensorDir	main.c	/^float sensorDir[NB_IR_SENSORS] = {0.2967, 0.8727, 1.5708, 2.6180, 3.6652, 4.7124, 5.4105, 5.9865};$/;"	v
-stepPerRev	main.c	50;"	d	file:
+set_rob_id	flocking.c	/^void set_rob_id(int id){$/;"	f
+speed	flocking.c	/^float speed[FLOCK_SIZE][2];		\/\/ Speeds calculated with Reynold's rules$/;"	v
+stepPerRev	main.c	51;"	d	file:
 steps2DoLeft	main.c	/^int steps2DoLeft = 0;$/;"	v
 steps2DoRight	main.c	/^int steps2DoRight = 0;$/;"	v
-stepsPerMm	main.c	52;"	d	file:
+stepsPerMm	main.c	53;"	d	file:
 theta	main.c	/^double theta[NB_ROBOTS_PER_GROUP] = {0,0,0};$/;"	v
+theta_robots	flocking.c	/^float theta_robots[FLOCK_SIZE];$/;"	v
 true	main.c	/^typedef enum { false, true } bool;$/;"	e	enum:__anon1	file:
 updateRobotsPosition	main.c	/^void updateRobotsPosition(int val, double distance, double heading){$/;"	f
+update_self_motion	flocking.c	/^void update_self_motion(int msl,int msr) {$/;"	f
 velocities	metrics.c	/^double velocities(int nbRobots, double* centerOfMass){$/;"	f
-wheelDia	main.c	49;"	d	file:
+wait	flocking.c	/^void wait(unsigned long num) {$/;"	f
+weightleft	flocking.c	/^int weightleft[8] = {-10, -10, -5, 0, 0, 5, 10, 10};$/;"	v
+weightright	flocking.c	/^int weightright[8] = {10, 10, 5, 0, 0, -5, -10, -10};$/;"	v
+wheelDia	main.c	50;"	d	file:

@@ -36,8 +36,9 @@
 
 #include "main.h"
 #include "braitenberg.h"
+#include "flocking.h"
 
-#define M_PI 3.141569
+#define M_PI 3.141593
 
 typedef enum { false, true } bool;
 
@@ -59,6 +60,11 @@ int steps2DoLeft = 0;
 double posX[NB_ROBOTS_PER_GROUP] = {0,0,0};
 double posY[NB_ROBOTS_PER_GROUP] = {0,0,0};
 double theta[NB_ROBOTS_PER_GROUP] = {0,0,0};
+
+int bSpeeds[2] = {0,0};
+int rSpeeds[2] = {0,0};
+int msl = 0,msr = 0;
+
 
 int getselector()
 {
@@ -96,11 +102,15 @@ int main()
     //e_activate_agenda(flocking, 5000);
 
     // acting as sender
+
+    msl = 0;
+    msr = 0;
     int i = 0;
     if (selector == 1)
     {    	
     	ownGroup = 1;
     	ownNumber = 1; // leader
+    	set_rob_id(ownNumber);
 
     	for(i = 0; i < 8; i+=2)
     		e_set_led(i+1,1);
@@ -115,6 +125,7 @@ int main()
     {
     	ownGroup = 1;
     	ownNumber = 2;
+    	set_rob_id(ownNumber);
     	for(i = 0; i < 8; i+=2)
     		e_set_led(i+1,1);
 		
@@ -125,6 +136,7 @@ int main()
     else if (selector == 3){
     	ownGroup = 1;
     	ownNumber = 3;
+    	set_rob_id(ownNumber);
     	for(i = 0; i < 8; i+=2)
     		e_set_led(i+1,1);
 		sendRobotInfosBT(ownGroup,ownNumber);
@@ -187,6 +199,12 @@ int main()
 // group is 1 or 2
 // the leader will send group*10 
 // and the slave group*10+slavenumber
+
+void call_update_self_motion(void){
+	update_self_motion(msl,msr);
+}
+
+
 void sendPing(){
 	ircomSend((int)ownGroup*10+ownNumber);	
 	while (ircomSendDone() == 0); 
@@ -221,7 +239,7 @@ void braitenAndComm(void){
 	}while (imsg.error != -1);
 	e_set_body_led(0);
 	//we avoid any obstacle ()
-	braitenberg();
+	//braitenberg(bSpeeds);
 	// we say all the other robots who we are
 	if(t>2){
 		e_set_body_led(1);
@@ -234,26 +252,41 @@ void braitenAndComm(void){
 }
 
 void sendBtUpdate(){
+	float x,y;
+	get_self_position(&x,&y);
 	char tmp[255];
-	sprintf(tmp, "\n\r\n\rRobot N°: %d Group N° %d\n\r 1 Position X: %f\t 1 Position Y: %f\n\r2 Position X: %f\t 2 Position Y: %f\n\r3 Position X: %f\t 3 Position Y: %f\n\r",ownNumber,ownGroup, posX[0], posY[0], posX[1], posY[1], posX[2], posY[2]);
+	sprintf(tmp, "\n\r\n\rRobot N°: %d Group N° %d\n\r 1 Position X: %f\t 1 Position Y: %f\n\r2 Position X: %f\t 2 Position Y: %f\n\r3 Position X: %f\t 3 Position Y: %f\n\r",ownNumber,ownGroup, x, y, posX[1], posY[1], posX[2], posY[2]);
 	btcomSendString(tmp);
 }
 
 void doLeaderStuffLoop(void){
 	bool execute = true;
 
-	sendPing();
-	e_activate_agenda(braitenAndComm, 1000); //every 500ms we do obstacle sensing/avoidance
+	//sendPing();
+	e_activate_agenda(braitenAndComm, 3000); //every 500ms we do obstacle sensing/avoidance
 	e_activate_agenda(sendBtUpdate, 50000);
+	e_activate_agenda(call_update_self_motion,DELTA_T*10000);/*(int)DELTA_T*10000);*/
 
 	while (execute == true){
+		reynolds_rules();
+		compute_wheel_speeds(&msl,&msr);
+		//get_wheel_speeds(&rSpeeds[LEFT], &rSpeeds[RIGHT]);
+
+		braitenberg(bSpeeds);
+		//update wheel speeds
+
+		msl += bSpeeds[LEFT];
+		msr += bSpeeds[RIGHT]; 
+		e_set_speed_left(msl);
+		e_set_speed_right(msr);
+
+		//wait(10);
+
 	}
 
 }
 
 void doSlaveStuffLoop(void){
-	bool execute = true;
-	int i = 0;
 	while(1){};
 }
 
@@ -280,6 +313,9 @@ void updateRobotsPosition(int val, double distance, double heading){
 			// the angle is rotated 90°
 			posX[robotNumber-1] = cos(heading-M_PI/2.0)*distance;
 			posY[robotNumber-1] = sin(heading-M_PI/2.0)*distance;
+
+
+			process_received_ping_messages(robotNumber, distance/100, heading);
 		}
 	}
 }
