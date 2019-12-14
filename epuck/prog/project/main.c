@@ -110,6 +110,7 @@ int main()
     {    	
     	ownGroup = 1;
     	ownNumber = 1; // leader
+
     	set_rob_id(ownNumber);
 
     	for(i = 0; i < 8; i+=2)
@@ -202,16 +203,23 @@ int main()
 
 void call_update_self_motion(void){
 
-	//char tmp[255];
-	sprintf(tmp, "Message robot: %d distance: %f direction: %f\n\r",(val-(val/10)*10), distance, direction);
-			//btcomSendString(tmp);
+	
 	update_self_motion(msl,msr);
 }
 
 
 void sendPing(){
+	long int j = 0;
+
+	for(j = 0; j < 50000; j++)	asm("nop");
+
 	ircomSend((int)ownGroup*10+ownNumber);	
+
 	while (ircomSendDone() == 0); 
+
+	btcomSendString(".");
+
+
 }
 
 int isPartOfGroup(int message){
@@ -219,13 +227,16 @@ int isPartOfGroup(int message){
 	return ownGroup == receivedGroup;
 }
 
-void braitenAndComm(void){
+void Comm(void){
 	static int t = 0;
+	int i = 0;
 	// we wait that the message has been sent
-	e_set_body_led(1);
+	//e_set_body_led(1);
 	//we check and update the received messages
-	IrcomMessage imsg;
-	do{//while we have messages in the queue
+	
+
+	while(i<50){
+		IrcomMessage imsg;
 	    ircomPopMessage(&imsg);
 	    
 	    //e_set_body_led(0);
@@ -235,24 +246,20 @@ void braitenAndComm(void){
 	    	double direction = (double)imsg.direction;
 	    	updateRobotsPosition(val, distance, direction);
 
-	    	//char tmp[255];
-			//sprintf(tmp, "Message robot: %d distance: %f direction: %f\n\r",(val-(val/10)*10), distance, direction);
-			//btcomSendString(tmp);
-	    	//
+	    	char tmp[255];
+			sprintf(tmp, "Message robot: %d distance: %f direction: %f\n\r",(val-(val/10)*10), distance, direction);
+			btcomSendString(tmp);
+	    	
 	    }
-	}while (imsg.error != -1);
-	e_set_body_led(0);
-	//we avoid any obstacle ()
-	//braitenberg(bSpeeds);
-	// we say all the other robots who we are
-	if(t>2){
-		e_set_body_led(1);
-		sendPing();
-		e_set_body_led(0);
-		t = 0;
+
+	    i++;
 	}
-	else
-		t -=- 1;
+	//e_set_body_led(0);
+
+	e_set_body_led(1);
+	sendPing();
+	e_set_body_led(0);
+
 }
 
 void sendBtUpdate(){
@@ -263,30 +270,31 @@ void sendBtUpdate(){
 	btcomSendString(tmp);
 }
 
+void movement(void){
+	reynolds_rules();
+
+	compute_wheel_speeds(&msl,&msr);
+	//get_wheel_speeds(&rSpeeds[LEFT], &rSpeeds[RIGHT]);
+
+	//braitenberg(bSpeeds);
+	//update wheel speeds
+
+	msl += bSpeeds[LEFT];
+	msr += bSpeeds[RIGHT]; 
+	e_set_speed_left(msl);
+	e_set_speed_right(msr);
+
+}
+
 void doLeaderStuffLoop(void){
-	bool execute = true;
 
 	//sendPing();
-	e_activate_agenda(braitenAndComm, 1000); //every 500ms we do obstacle sensing/avoidance
+	e_activate_agenda(movement, 1000); //every 500ms we do obstacle sensing/avoidance
 	//e_activate_agenda(sendBtUpdate, 50000);
 	e_activate_agenda(call_update_self_motion,DELTA_T*10000);/*(int)DELTA_T*10000);*/
 
-	while (execute == true){
-		reynolds_rules();
-
-		compute_wheel_speeds(&msl,&msr);
-		//get_wheel_speeds(&rSpeeds[LEFT], &rSpeeds[RIGHT]);
-
-		//braitenberg(bSpeeds);
-		//update wheel speeds
-
-		msl += bSpeeds[LEFT];
-		msr += bSpeeds[RIGHT]; 
-		e_set_speed_left(msl);
-		e_set_speed_right(msr);
-
-		//wait(10);
-
+	while (1){
+		Comm();
 	}
 
 }

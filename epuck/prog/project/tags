@@ -6,6 +6,7 @@
 !_TAG_PROGRAM_VERSION	5.9~svn20110310	//
 ABS	flocking.h	28;"	d
 AXLE_LENGTH	flocking.h	10;"	d
+Comm	main.c	/^void Comm(void){$/;"	f
 DELTA_T	flocking.h	13;"	d
 FLOCK_SIZE	flocking.h	7;"	d
 LEFT	braitenberg.h	6;"	d
@@ -33,7 +34,6 @@ _MAIN	main.h	3;"	d
 _METRICS	metrics.h	2;"	d
 bSpeeds	main.c	/^int bSpeeds[2] = {0,0};$/;"	v
 bool	main.c	/^typedef enum { false, true } bool;$/;"	t	typeref:enum:__anon1	file:
-braitenAndComm	main.c	/^void braitenAndComm(void){$/;"	f
 braitenberg	braitenberg.c	/^void braitenberg(int* bSpeeds) {$/;"	f
 buffer	flocking.c	/^char buffer[80];$/;"	v
 call_update_self_motion	main.c	/^void call_update_self_motion(void){$/;"	f
@@ -52,6 +52,7 @@ limit	flocking.c	/^void limit(int *number, int limit) {$/;"	f
 main	main.c	/^int main()$/;"	f
 migr	flocking.c	/^float migr[2] = {0,-2};	        \/\/ Migration vector$/;"	v
 mmPerSteps	main.c	52;"	d	file:
+movement	main.c	/^void movement(void){$/;"	f
 msl	main.c	/^int msl = 0,msr = 0;$/;"	v
 msr	main.c	/^int msl = 0,msr = 0;$/;"	v
 my_position	flocking.c	/^float my_position[3];     		\/\/ X, Z, Theta of the current robot$/;"	v
