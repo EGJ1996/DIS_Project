@@ -201,6 +201,10 @@ int main()
 // and the slave group*10+slavenumber
 
 void call_update_self_motion(void){
+
+	//char tmp[255];
+	sprintf(tmp, "Message robot: %d distance: %f direction: %f\n\r",(val-(val/10)*10), distance, direction);
+			//btcomSendString(tmp);
 	update_self_motion(msl,msr);
 }
 
@@ -263,16 +267,17 @@ void doLeaderStuffLoop(void){
 	bool execute = true;
 
 	//sendPing();
-	e_activate_agenda(braitenAndComm, 3000); //every 500ms we do obstacle sensing/avoidance
-	e_activate_agenda(sendBtUpdate, 50000);
+	e_activate_agenda(braitenAndComm, 1000); //every 500ms we do obstacle sensing/avoidance
+	//e_activate_agenda(sendBtUpdate, 50000);
 	e_activate_agenda(call_update_self_motion,DELTA_T*10000);/*(int)DELTA_T*10000);*/
 
 	while (execute == true){
 		reynolds_rules();
+
 		compute_wheel_speeds(&msl,&msr);
 		//get_wheel_speeds(&rSpeeds[LEFT], &rSpeeds[RIGHT]);
 
-		braitenberg(bSpeeds);
+		//braitenberg(bSpeeds);
 		//update wheel speeds
 
 		msl += bSpeeds[LEFT];
@@ -313,6 +318,9 @@ void updateRobotsPosition(int val, double distance, double heading){
 			// the angle is rotated 90°
 			posX[robotNumber-1] = cos(heading-M_PI/2.0)*distance;
 			posY[robotNumber-1] = sin(heading-M_PI/2.0)*distance;
+
+			if(heading>M_PI)
+				heading = (-(2*M_PI-heading));
 
 
 			process_received_ping_messages(robotNumber, distance/100, heading);
