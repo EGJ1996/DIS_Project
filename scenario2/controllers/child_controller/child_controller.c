@@ -24,13 +24,13 @@
 #include <webots/receiver.h>
 
 #define NB_SENSORS	  8	  // Number of distance sensors
-#define MIN_SENS          250     // Minimum sensibility value
+#define MIN_SENS          210     // Minimum sensibility value
 #define MAX_SENS          4096    // Maximum sensibility value
-#define MAX_SPEED         800     // Maximum speed
+#define MAX_SPEED         500     // Maximum speed
 /*Webots 2018b*/
 #define MAX_SPEED_WEB      6.28    // Maximum speed webots
 /*Webots 2018b*/
-#define FLOCK_SIZE	  5	  // Size of flock
+#define FLOCK_SIZE	  3	  // Size of flock
 #define TIME_STEP	  64	  // [ms] Length of time step
 
 #define AXLE_LENGTH 		0.052	// Distance between wheels of robot (meters)
@@ -58,7 +58,7 @@ WbDeviceTag left_motor; //handler for left wheel of the robot
 WbDeviceTag right_motor; //handler for the right wheel of the robot
 /*Webots 2018b*/
 
-int e_puck_matrix[16] = {17,29,34,10,8,-38,-56,-76,  -72,-58,-36,8,10,36,28,18}; // Maze
+int e_puck_matrix[16] = {15,29,34,10,8,-38,-56,-76,  -72,-58,-36,8,10,36,28,18}; // Maze
 //int e_puck_matrix[16] = {17,29,12,10,8,-38,-56,-76,-72,-58,-36,8,10,12,28,18}; // Crossing
 
 WbDeviceTag ds[NB_SENSORS];	// Handle for the infrared distance sensors
@@ -374,7 +374,7 @@ int main(){
                 
 		// Adapt Braitenberg values (empirical tests)
 		bmsl/=MIN_SENS; bmsr/=MIN_SENS;
-                      bmsl+=66; bmsr+=72;
+                      bmsl+=46; bmsr+=50;
               
 		/* Get information */
 		int count = 0;
@@ -396,6 +396,8 @@ int main(){
 				prev_loc[rob_nb][1] = loc[rob_nb][1];
 				initialized[rob_nb] = 1;
 			} else {
+			//update only if robot in range
+                      		      if(fabs(sqrtf(powf(loc[rob_nb][0]-loc[robot_id][0],2)+powf(loc[rob_nb][1]-loc[robot_id][1],2)))<0.25){
 				// Get position update
 //				printf("\n got update robot[%d] = (%f,%f) \n",rob_nb,loc[rob_nb][0],loc[rob_nb][1]);
 				prev_loc[rob_nb][0] = loc[rob_nb][0];
@@ -403,6 +405,7 @@ int main(){
 				loc[rob_nb][0] = rob_x; //x-position
 				loc[rob_nb][1] = rob_z; //z-position
 				loc[rob_nb][2] = rob_theta; //theta
+				}
 			}
 			
 			speed[rob_nb][0] = (1/DELTA_T)*(loc[rob_nb][0]-prev_loc[rob_nb][0]);

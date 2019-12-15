@@ -9,7 +9,7 @@
 #include <webots/emitter.h>
 #include <webots/supervisor.h>
 
-#define FLOCK_SIZE	5		// Number of robots in flock
+#define FLOCK_SIZE	3		// Number of robots in flock
 #define TIME_STEP	64		// [ms] Length of time step
 
 WbNodeRef robs[FLOCK_SIZE];		// Robots nodes
@@ -123,7 +123,7 @@ int main(int argc, char *args[]) {
 
 	reset();
 
-         send_init_posxes();
+           send_init_poses();
 	
 	// Compute reference fitness values
 	
