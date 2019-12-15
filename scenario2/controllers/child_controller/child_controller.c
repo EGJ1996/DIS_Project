@@ -24,7 +24,7 @@
 #include <webots/receiver.h>
 
 #define NB_SENSORS	  8	  // Number of distance sensors
-#define MIN_SENS          350     // Minimum sensibility value
+#define MIN_SENS          250     // Minimum sensibility value
 #define MAX_SENS          4096    // Maximum sensibility value
 #define MAX_SPEED         800     // Maximum speed
 /*Webots 2018b*/
@@ -40,10 +40,10 @@
 
 
 #define RULE1_THRESHOLD     0.01   // Threshold to activate aggregation rule. default 0.20
-#define RULE1_WEIGHT        (1.5/10)	   // Weight of aggregation rule. default 0.6/10
+#define RULE1_WEIGHT        (0.9/10)	   // Weight of aggregation rule. default 0.6/10
 
 #define RULE2_THRESHOLD     0.05   // Threshold to activate dispersion rule. default 0.15
-#define RULE2_WEIGHT        (0.01/10)	   // Weight of dispersion rule. default 0.02/10
+#define RULE2_WEIGHT        (0.02/10)	   // Weight of dispersion rule. default 0.02/10
 
 #define RULE3_WEIGHT        (1.0/10)   // Weight of consistency rule. default 1.0/10
 
@@ -58,7 +58,7 @@ WbDeviceTag left_motor; //handler for left wheel of the robot
 WbDeviceTag right_motor; //handler for the right wheel of the robot
 /*Webots 2018b*/
 
-int e_puck_matrix[16] = {17,29,34,10,8,-38,-56,-76,-72,-58,-36,8,10,36,28,18}; // Maze
+int e_puck_matrix[16] = {17,29,34,10,8,-38,-56,-76,  -72,-58,-36,8,10,36,28,18}; // Maze
 //int e_puck_matrix[16] = {17,29,12,10,8,-38,-56,-76,-72,-58,-36,8,10,12,28,18}; // Crossing
 
 WbDeviceTag ds[NB_SENSORS];	// Handle for the infrared distance sensors
